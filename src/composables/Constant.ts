@@ -18,9 +18,9 @@ export enum DrawName {
 }
 
 export interface Candidates {
-    min: Number;
-    max: Number;
-    count: Number;
+    min: number;
+    max: number;
+    count: number;
 }
 
 export interface Draw {

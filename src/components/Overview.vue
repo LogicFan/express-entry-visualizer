@@ -108,7 +108,7 @@ function sizeBar() {
                 },
                 y: {
                     min: 0,
-                    type: "logarithmic",
+                    type: "linear",
                 },
             },
             plugins: {

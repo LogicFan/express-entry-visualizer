@@ -2,6 +2,7 @@
 import { NTabs, NTabPane, NConfigProvider, darkTheme } from "naive-ui";
 
 import Overview from "./components/Overview.vue";
+import Candidates from "./components/Candidates.vue";
 </script>
 
 <template>
@@ -12,8 +13,10 @@ import Overview from "./components/Overview.vue";
                     <Overview />
                 </Suspense>
             </n-tab-pane>
-            <n-tab-pane name="the beatles" tab="the Beatles">
-                Hey Jude
+            <n-tab-pane name="candidates" tab="Candidates">
+                <Suspense>
+                    <Candidates />
+                </Suspense>
             </n-tab-pane>
             <n-tab-pane name="jay chou" tab="Jay Chou"> Qilixiang </n-tab-pane>
         </n-tabs>

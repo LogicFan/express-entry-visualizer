@@ -24,9 +24,9 @@ export interface Candidates {
 }
 
 export interface Draw {
-    id: Number;
-    crs: Number;
-    size: Number;
+    id: number;
+    crs: number;
+    size: number;
     name: DrawName;
     date: Date;
     pool: Array<Candidates>;

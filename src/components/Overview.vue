@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NCard } from "naive-ui";
-import { Line } from "vue-chartjs";
+import { Bar, Line } from "vue-chartjs";
 import zoomPlugin from "chartjs-plugin-zoom";
 import {
     Chart as ChartJS,
@@ -81,7 +81,53 @@ function crsLine() {
     };
 }
 
+function sizeBar() {
+    const labels = data.map((e) => e.id);
+    const categories = [...new Set(data.map((e) => e.name))];
+    const datasets = categories.map(function (x) {
+        return {
+            label: x.toString(),
+            data: data.map((e) => (e.name == x ? e.size : null)),
+            backgroundColor: useDrawColor(x),
+            borderColor: useDrawColor(x),
+            stack: 0,
+        };
+    });
+
+    return {
+        data: {
+            labels: labels,
+            datasets: datasets,
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: "linear",
+                },
+                y: {
+                    min: 0,
+                    type: "logarithmic",
+                },
+            },
+            plugins: {
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        mode: "x",
+                    },
+                    pan: { enabled: true, mode: "x" },
+                },
+            },
+        },
+    };
+}
+
 let crsChart = crsLine();
+let sizeChart = sizeBar();
 </script>
 
 <template>
@@ -90,6 +136,17 @@ let crsChart = crsLine();
             id="crsChart"
             :options="crsChart.options"
             :data="crsChart.data"
+            :style="{
+                height: '30vh',
+                width: '100%',
+            }"
+        />
+    </n-card>
+    <n-card title="Invitation Size">
+        <Bar
+            id="crsChart"
+            :options="sizeChart.options"
+            :data="sizeChart.data"
             :style="{
                 height: '30vh',
                 width: '100%',

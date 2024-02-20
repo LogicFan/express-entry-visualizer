@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NCard, NGrid, NGridItem } from "naive-ui";
+import {} from "vue";
+import { NCard, NGrid, NGridItem, NDataTable } from "naive-ui";
 import { Doughnut } from "vue-chartjs";
 import {
     Chart as ChartJS,
@@ -120,14 +121,14 @@ function drawCountPie() {
     };
 }
 
+function lastDrawOfCategory(d: Array<Draw>, c: DrawName): Draw {
+    return d
+        .filter((e) => e.name == c)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())[0];
+}
+
 function poolSizePie() {
     const labels = categories.concat([DrawName.GENERAL]);
-
-    function lastDrawOfCategory(d: Array<Draw>, c: DrawName): Draw {
-        return d
-            .filter((e) => e.name == c)
-            .sort((a, b) => b.date.getDate() - a.date.getDate())[0];
-    }
 
     function estimatePercentage(d: Draw): number {
         const selected = d.size;
@@ -177,9 +178,37 @@ function poolSizePie() {
     };
 }
 
+function recentDrawTable() {
+    const datasets = categories
+        .map((c) => lastDrawOfCategory(data, c))
+        .map(function (e) {
+            return {
+                category: e.name,
+                date: e.date.toISOString().substring(0, 10),
+            };
+        });
+
+    return {
+        columns: [
+            { title: "Category", key: "category" },
+            {
+                title: "Date",
+                key: "date",
+                defaultSortOrder: "ascend",
+                sorter: "default",
+            },
+        ],
+        data: datasets,
+    };
+}
+
 let drawSizeChart = drawSizePie();
 let drawCountChart = drawCountPie();
 let poolSizeChart = poolSizePie();
+let recentChart = recentDrawTable();
+
+let vh = visualViewport.height;
+console.log(vh);
 </script>
 
 <template>
@@ -224,11 +253,16 @@ let poolSizeChart = poolSizePie();
             </n-card>
         </n-grid-item>
         <n-grid-item>
-            <n-card title="Candidates in the Pool">
-                <Doughnut
-                    id="crsChart"
-                    :options="drawSizeChart.options"
-                    :data="drawSizeChart.data"
+            <n-card title="Most Recent Draw By Categories">
+                <n-data-table
+                    :columns="recentChart.columns"
+                    :data="recentChart.data"
+                    :bordered="false"
+                    :max-height="vh * 0.25"
+                    :style="{
+                        height: '30vh',
+                        width: '100%',
+                    }"
                 />
             </n-card>
         </n-grid-item>

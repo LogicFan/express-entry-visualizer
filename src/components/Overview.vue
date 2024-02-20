@@ -144,7 +144,7 @@ let sizeChart = sizeBar();
     </n-card>
     <n-card title="Invitation Size">
         <Bar
-            id="crsChart"
+            id="sizeChart"
             :options="sizeChart.options"
             :data="sizeChart.data"
             :style="{

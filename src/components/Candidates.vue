@@ -7,7 +7,6 @@ import {
     Title,
     Tooltip,
     Legend,
-    BarElement,
     LineElement,
     PointElement,
     CategoryScale,
@@ -22,7 +21,6 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    BarElement,
     LineElement,
     PointElement,
     CategoryScale,
@@ -128,7 +126,7 @@ let poolChart = poolArea();
 <template>
     <n-card title="Candidates in the Pool">
         <Line
-            id="crsChart"
+            id="poolChart"
             :options="poolChart.options"
             :data="poolChart.data"
             :style="{

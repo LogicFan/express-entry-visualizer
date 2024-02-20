@@ -14,6 +14,8 @@ import {
     LinearScale,
     LogarithmicScale,
     TimeScale,
+    ChartData,
+    ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
@@ -53,7 +55,7 @@ function crsLine() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"line", number[], number>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
@@ -77,7 +79,7 @@ function crsLine() {
                     pan: { enabled: true, mode: "x" },
                 },
             },
-        },
+        } as ChartOptions<"line">,
     };
 }
 
@@ -90,7 +92,7 @@ function sizeBar() {
             data: data.map((e) => (e.name == x ? e.size : null)),
             backgroundColor: useDrawColor(x),
             borderColor: useDrawColor(x),
-            stack: 0,
+            stack: "0",
         };
     });
 
@@ -98,7 +100,7 @@ function sizeBar() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"bar", number[], number>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
@@ -122,7 +124,7 @@ function sizeBar() {
                     pan: { enabled: true, mode: "x" },
                 },
             },
-        },
+        } as ChartOptions<"bar">,
     };
 }
 

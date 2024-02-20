@@ -1,17 +1,25 @@
-<script setup lang="ts">
+<script setup async lang="ts">
+import { NTabs, NTabPane, NConfigProvider, darkTheme } from "naive-ui";
+
 import HelloWorld from "./components/HelloWorld.vue";
+import Overview from "./components/Overview.vue";
 </script>
 
 <template>
-    <div>
-        <a href="https://vitejs.dev" target="_blank">
-            <img src="/vite.svg" class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://vuejs.org/" target="_blank">
-            <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-        </a>
-    </div>
-    <HelloWorld msg="Vite + Vue" />
+    <n-config-provider :theme="darkTheme">
+        <n-tabs type="line" animated>
+            <n-tab-pane name="overview" tab="Overview">
+                <Suspense>
+                    <Overview />
+                </Suspense>
+            </n-tab-pane>
+            <n-tab-pane name="the beatles" tab="the Beatles">
+                Hey Jude
+            </n-tab-pane>
+            <n-tab-pane name="jay chou" tab="Jay Chou"> Qilixiang </n-tab-pane>
+        </n-tabs>
+        <HelloWorld msg="Vite + Vue" />
+    </n-config-provider>
 </template>
 
 <style scoped>

@@ -13,7 +13,8 @@ import {
     LogarithmicScale,
     TimeScale,
     TooltipItem,
-    ChartTypeRegistry,
+    ChartData,
+    ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
@@ -30,6 +31,7 @@ ChartJS.register(
 
 import { Draw, DrawName, useDrawColor } from "../composables/Constant.ts";
 import { useData } from "../composables/DataLoader.ts";
+import { TableColumns } from "naive-ui/es/data-table/src/interface";
 
 const categories = [
     DrawName.STEM_2023,
@@ -69,7 +71,7 @@ function drawSizePie() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"doughnut", number[], string>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
@@ -77,20 +79,19 @@ function drawSizePie() {
                 legend: { position: "right" },
                 tooltip: {
                     callbacks: {
-                        label: function (
-                            context: TooltipItem<keyof ChartTypeRegistry>
-                        ) {
+                        label: function (context: TooltipItem<"doughnut">) {
                             const total = context.dataset.data.reduce(
                                 (a, b) => a + b,
                                 0
                             );
-                            const percentage = (context.raw / total) * 100;
+                            const percentage =
+                                ((context.raw as number) / total) * 100;
                             return percentage.toFixed(2) + "%";
                         },
                     },
                 },
             },
-        },
+        } as ChartOptions<"doughnut">,
     };
 }
 
@@ -112,12 +113,12 @@ function drawCountPie() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"doughnut", number[], string>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
             plugins: { legend: { position: "right" } },
-        },
+        } as ChartOptions<"doughnut">,
     };
 }
 
@@ -157,7 +158,7 @@ function poolSizePie() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"doughnut", number[], string>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
@@ -165,16 +166,14 @@ function poolSizePie() {
                 legend: { position: "right" },
                 tooltip: {
                     callbacks: {
-                        label: function (
-                            context: TooltipItem<keyof ChartTypeRegistry>
-                        ) {
-                            const percentage = context.raw * 100;
+                        label: function (context: TooltipItem<"doughnut">) {
+                            const percentage = (context.raw as number) * 100;
                             return percentage.toFixed(2) + "%";
                         },
                     },
                 },
             },
-        },
+        } as ChartOptions<"doughnut">,
     };
 }
 
@@ -197,7 +196,7 @@ function recentDrawTable() {
                 defaultSortOrder: "ascend",
                 sorter: "default",
             },
-        ],
+        ] as TableColumns,
         data: datasets,
     };
 }

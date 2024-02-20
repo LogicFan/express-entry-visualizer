@@ -63,7 +63,7 @@ export async function useData(): Promise<Array<Draw>> {
             crs: parseInt(e.drawCRS.replace(/,/g, "")),
             size: parseInt(e.drawSize.replace(/,/g, "")),
             name: convertDrawName(e.drawName),
-            date: Date.parse(e.drawDateFull),
+            date: new Date(Date.parse(e.drawDateFull)),
             pool: createPool([
                 e.dd1,
                 e.dd2,

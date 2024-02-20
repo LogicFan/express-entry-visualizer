@@ -28,6 +28,34 @@ export interface Draw {
     crs: Number;
     size: Number;
     name: DrawName;
-    date: Number; // unix timestamp
+    date: Date;
     pool: Array<Candidates>;
+}
+
+export function useDrawColor(str: DrawName): string {
+    if (str == DrawName.GENERAL) {
+        return "#ECF0F1";
+    } else if (str == DrawName.PNP) {
+        return "#9B59B6";
+    } else if (str == DrawName.CEC) {
+        return "#E74C3C";
+    } else if (str == DrawName.FSW) {
+        return "#C0392B";
+    } else if (str == DrawName.FST) {
+        return "#95A5A6";
+    } else if (str == DrawName.STEM_2023) {
+        return "#3498DB";
+    } else if (str == DrawName.HEALTH_2023) {
+        return "#16A085";
+    } else if (str == DrawName.FRENCH_2023) {
+        return "#D35400";
+    } else if (str == DrawName.TRADE_2023) {
+        return "#BDC3C7";
+    } else if (str == DrawName.TRANSPORT_2023) {
+        return "#F39C12";
+    } else if (str == DrawName.AGRICULTURE_2023) {
+        return "#2ECC71";
+    } else {
+        return "#000000";
+    }
 }

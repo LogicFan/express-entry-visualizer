@@ -14,6 +14,8 @@ import {
     LogarithmicScale,
     TimeScale,
     Filler,
+    ChartData,
+    ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
@@ -87,7 +89,7 @@ function poolArea() {
         data: {
             labels: labels,
             datasets: datasets,
-        },
+        } as ChartData<"line", number[], number>,
         options: {
             responsive: false,
             maintainAspectRatio: false,
@@ -114,7 +116,7 @@ function poolArea() {
                     pan: { enabled: true, mode: "xy" },
                 },
             },
-        },
+        } as ChartOptions<"line">,
     };
 }
 

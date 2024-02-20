@@ -1,0 +1,30 @@
+{
+    "name": "express-entry-visualizer",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "concurrently \"rsw watch\" \"vite\"",
+        "build": "rsw build && vue-tsc && vite build",
+        "preview": "vite preview",
+        "rsw": "rsw"
+    },
+    "dependencies": {
+        "chart.js": "^4.4.1",
+        "chartjs-adapter-date-fns": "^3.0.0",
+        "chartjs-plugin-zoom": "^2.0.1",
+        "date-fns": "^2.0.0",
+        "vue": "^3.4.15",
+        "vue-chartjs": "^5.3.0",
+        "vue-mathjax-next": "^0.0.6",
+        "naive-ui": "^2.37.3",
+        "vfonts": "^0.0.3"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.3",
+        "typescript": "^5.2.2",
+        "vite": "^5.1.0",
+        "vite-plugin-rsw": "^2.0.11",
+        "vue-tsc": "^1.8.27"
+    }
+}

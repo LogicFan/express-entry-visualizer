@@ -1,0 +1,38 @@
+name: Push-To-Github.io
+on:
+    push:
+        branches:
+            - main
+jobs:
+    push_to_github_io:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Install Rust
+              run: |
+                rustup update --no-self-update stable
+                rustup component add --toolchain stable rustfmt rust-src
+                rustup default stable
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+            - name: Check out Source Code
+              uses: actions/checkout@v4
+            - name: Install Dependencies
+              run: |
+                cargo install wasm-pack rsw
+                npm install -g vue-tsc vite 
+                npm install
+            - name: Build
+              run: npm run build
+            - name: Publish
+              run: |
+                cd dist
+                ls -lR
+                git init -b main
+                git config user.name "GitAction"
+                git remote add origin https://${{ secrets.PAT }}@github.com/LogicFan/logicfan.github.io.git
+                git fetch origin
+                git add -A
+                git reset --soft origin/main
+                git commit -m "sync from git workflow"
+                git push origin main
+                cd ..

@@ -72,8 +72,6 @@ function poolArea() {
 
     const dColor = range.map((i) => colorRank(i));
 
-    console.log(dColor);
-
     const datasets = range.map(function (i) {
         return {
             label: dLabel[i],

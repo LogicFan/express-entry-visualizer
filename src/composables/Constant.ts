@@ -50,7 +50,7 @@ export function useDrawColor(str: DrawName): string {
     } else if (str == DrawName.FRENCH_2023) {
         return "#D35400";
     } else if (str == DrawName.TRADE_2023) {
-        return "#BDC3C7";
+        return "#7F8C8D";
     } else if (str == DrawName.TRANSPORT_2023) {
         return "#F39C12";
     } else if (str == DrawName.AGRICULTURE_2023) {

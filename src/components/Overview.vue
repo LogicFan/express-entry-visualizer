@@ -2,6 +2,7 @@
 import { NCard } from "naive-ui";
 import { Bar, Line } from "vue-chartjs";
 import zoomPlugin from "chartjs-plugin-zoom";
+import { SimLogScale } from "../composables/SimLogScale";
 import {
     Chart as ChartJS,
     Title,
@@ -16,6 +17,7 @@ import {
     TimeScale,
     ChartData,
     ChartOptions,
+    CartesianScaleTypeRegistry,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
@@ -30,6 +32,7 @@ ChartJS.register(
     LinearScale,
     LogarithmicScale,
     TimeScale,
+    SimLogScale,
     zoomPlugin
 );
 
@@ -64,8 +67,11 @@ function crsLine() {
                     type: "time",
                 },
                 y: {
-                    min: 0,
-                    max: 1200,
+                    type: "simlog" as keyof CartesianScaleTypeRegistry,
+                    min: -1200,
+                    max: 2400,
+                    center: 600,
+                    delta: 0.1,
                 },
             },
             plugins: {

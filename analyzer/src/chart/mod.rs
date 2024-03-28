@@ -1,5 +1,5 @@
 pub mod candidate;
-pub mod invitation;
+pub mod invite;
 
 mod utils {
     use chrono::NaiveDate;

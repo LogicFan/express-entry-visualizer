@@ -25,10 +25,10 @@ import "chartjs-adapter-date-fns";
 import { Scale } from "chart.js/auto";
 import wasm_init, {
     wasm_invite_data,
-    wasm_invitation_x_min,
-    wasm_invitation_x_max,
-    wasm_invitation_size_data,
-    wasm_invitation_score_data,
+    wasm_invite_x_min,
+    wasm_invite_x_max,
+    wasm_invite_size_data,
+    wasm_invite_score_data,
 } from "analyzer";
 
 ChartJS.register(
@@ -109,15 +109,15 @@ const callback_zoom_onZoom = (context: { chart: ChartJS }) => {
     let r = (range.max - range.min) / 1000 / 3600 / 24;
 
     if (r > 2500) {
-        chart.data = wasm_invitation_size_data(invitationData, "m");
+        chart.data = wasm_invite_size_data(invitationData, "m");
         chart.options.plugins.tooltip.callbacks.title =
             callback_tooltip_title_sizeChart_m;
     } else if (r > 583) {
-        chart.data = wasm_invitation_size_data(invitationData, "w");
+        chart.data = wasm_invite_size_data(invitationData, "w");
         chart.options.plugins.tooltip.callbacks.title =
             callback_tooltip_title_sizeChart_w;
     } else {
-        chart.data = wasm_invitation_size_data(invitationData, "d");
+        chart.data = wasm_invite_size_data(invitationData, "d");
         chart.options.plugins.tooltip.callbacks.title =
             callback_tooltip_title_sizeChart_d;
     }
@@ -136,8 +136,8 @@ let config_zoom = {
     },
     limits: {
         x: {
-            min: wasm_invitation_x_min(invitationData),
-            max: wasm_invitation_x_max(invitationData),
+            min: wasm_invite_x_min(invitationData),
+            max: wasm_invite_x_max(invitationData),
         },
     },
     pan: {
@@ -152,7 +152,7 @@ const callback_tooltip_title_scoreChart = function <
 >(items: TooltipItem<T>[]) {
     return items.map(
         (x) =>
-            wasm_invitation_score_data(invitationData).tooltip.title[
+            wasm_invite_score_data(invitationData).tooltip.title[
                 x.dataIndex
             ]
     );
@@ -162,8 +162,8 @@ let scoreChartConfig = {
     scales: {
         x: {
             type: "time",
-            min: wasm_invitation_x_min(invitationData),
-            max: wasm_invitation_x_max(invitationData),
+            min: wasm_invite_x_min(invitationData),
+            max: wasm_invite_x_max(invitationData),
         },
         y: {
             type: "focus" as ScaleType,
@@ -194,7 +194,7 @@ const callback_tooltip_title_sizeChart_m = function <
 >(items: TooltipItem<T>[]) {
     return items.map(
         (x) =>
-            wasm_invitation_size_data(invitationData, "m").tooltip.title[
+            wasm_invite_size_data(invitationData, "m").tooltip.title[
                 x.dataIndex
             ]
     );
@@ -204,7 +204,7 @@ const callback_tooltip_title_sizeChart_w = function <
 >(items: TooltipItem<T>[]) {
     return items.map(
         (x) =>
-            wasm_invitation_size_data(invitationData, "w").tooltip.title[
+            wasm_invite_size_data(invitationData, "w").tooltip.title[
                 x.dataIndex
             ]
     );
@@ -214,7 +214,7 @@ const callback_tooltip_title_sizeChart_d = function <
 >(items: TooltipItem<T>[]) {
     return items.map(
         (x) =>
-            wasm_invitation_size_data(invitationData, "d").tooltip.title[
+            wasm_invite_size_data(invitationData, "d").tooltip.title[
                 x.dataIndex
             ]
     );
@@ -224,8 +224,8 @@ let sizeChartConfig = {
     scales: {
         x: {
             type: "time",
-            min: await wasm_invitation_x_min(invitationData),
-            max: await wasm_invitation_x_max(invitationData),
+            min: await wasm_invite_x_min(invitationData),
+            max: await wasm_invite_x_max(invitationData),
         },
         y: {
             type: "logarithmic",
@@ -249,8 +249,8 @@ let sizeChartConfig = {
             },
             limits: {
                 x: {
-                    min: await wasm_invitation_x_min(invitationData),
-                    max: await wasm_invitation_x_max(invitationData),
+                    min: await wasm_invite_x_min(invitationData),
+                    max: await wasm_invite_x_max(invitationData),
                 },
             },
             pan: {
@@ -276,7 +276,7 @@ let sizeChartConfig = {
                 @mouseover="onFocusChartRef = scoreChartRef"
                 @mouseleave="onFocusChartRef = null"
                 :options="scoreChartConfig"
-                :data="wasm_invitation_score_data(invitationData)"
+                :data="wasm_invite_score_data(invitationData)"
                 :style="{
                     height: '30vh',
                     width: '100%',
@@ -291,7 +291,7 @@ let sizeChartConfig = {
                 @mouseover="onFocusChartRef = sizeChartRef"
                 @mouseleave="onFocusChartRef = null"
                 :options="sizeChartConfig"
-                :data="wasm_invitation_size_data(invitationData, 'm')"
+                :data="wasm_invite_size_data(invitationData, 'm')"
                 :style="{
                     height: '30vh',
                     width: '100%',

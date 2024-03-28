@@ -8,7 +8,7 @@ use crate::chart::utils::{ToTimestamp, SERIALIZER};
 use crate::data::{Category, Invite};
 
 #[wasm_bindgen]
-pub fn wasm_invitation_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
+pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     let labels = source
         .iter()
@@ -55,7 +55,7 @@ pub fn wasm_invitation_score_data(invitation_data: *const Vec<Invite>) -> JsValu
 }
 
 #[wasm_bindgen]
-pub fn wasm_invitation_size_data(invitation_data: *const Vec<Invite>, mode: String) -> JsValue {
+pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     fn per_day(date: NaiveDate) -> NaiveDate {
         date
@@ -175,7 +175,7 @@ pub fn wasm_invitation_size_data(invitation_data: *const Vec<Invite>, mode: Stri
 }
 
 #[wasm_bindgen]
-pub fn wasm_invitation_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
+pub fn wasm_invite_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     source
         .iter()
@@ -193,7 +193,7 @@ pub fn wasm_invitation_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn wasm_invitation_x_max(invitation_data: *const Vec<Invite>) -> JsValue {
+pub fn wasm_invite_x_max(invitation_data: *const Vec<Invite>) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     source
         .iter()

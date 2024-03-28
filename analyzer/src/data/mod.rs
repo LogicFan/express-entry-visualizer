@@ -14,7 +14,7 @@ pub use invite::Invite;
 pub use pathway::Pathway;
 pub use pool::Pool;
 
-pub enum PoolOrInvitation {
+pub enum PoolOrInvite {
     Pool(Pool),
     Invite(Invite)
 }

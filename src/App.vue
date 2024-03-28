@@ -5,6 +5,7 @@ import Invitations from "./components/Invitations.vue";
 import Candidates from "./components/Candidates.vue";
 import Categories from "./components/Categories.vue";
 import Plan from "./components/Plan.vue";
+import Version from "./Version.vue";
 import Methodology from "./components/Methodology.vue";
 </script>
 
@@ -37,5 +38,6 @@ import Methodology from "./components/Methodology.vue";
                 </Suspense>
             </n-tab-pane>
         </n-tabs>
+        <Version />
     </n-config-provider>
 </template>

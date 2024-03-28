@@ -21,6 +21,9 @@ jobs:
                 cargo install wasm-pack rsw
                 npm install -g vue-tsc vite 
                 npm install
+            - name: Insert Version
+              run: |
+                echo "<template><p>SHA: $(git rev-parse HEAD)</p></template>" > src/Version.vue
             - name: Build
               run: npm run build
             - name: Publish

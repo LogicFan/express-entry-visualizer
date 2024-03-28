@@ -2,11 +2,42 @@
 import { NCard, NSwitch } from "naive-ui";
 import { Line } from "vue-chartjs";
 import zoomPlugin from "chartjs-plugin-zoom";
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, Filler, ChartOptions } from "chart.js";
+import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    Filler,
+    ChartOptions,
+} from "chart.js";
 import "chartjs-adapter-date-fns";
-import wasm_init, { wasm_pool_data, wasm_pool_x_min, wasm_pool_x_max, wasm_pool_count_y_max, wasm_pool_count_data } from "analyzer";
+import wasm_init, {
+    wasm_pool_data,
+    wasm_pool_x_min,
+    wasm_pool_x_max,
+    wasm_pool_count_y_max,
+    wasm_pool_count_data,
+} from "analyzer";
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, zoomPlugin, Filler);
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    zoomPlugin,
+    Filler
+);
 
 await wasm_init();
 

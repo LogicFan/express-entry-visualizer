@@ -4,10 +4,37 @@ import { NCard } from "naive-ui";
 import { Line } from "vue-chartjs";
 import zoomPlugin from "chartjs-plugin-zoom";
 import { FocusScale } from "../composables/FocusScale";
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, ChartData, ChartOptions } from "chart.js";
+import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    ChartData,
+    ChartOptions,
+} from "chart.js";
 import "chartjs-adapter-date-fns";
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, FocusScale, zoomPlugin);
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    FocusScale,
+    zoomPlugin
+);
 
 import { DrawCategory, IrccPlan } from "../composables/Constant.ts";
 import { useData } from "../composables/DataLoader.ts";
@@ -31,14 +58,24 @@ function calcXLimit() {
 
 const xLimit = calcXLimit();
 
-const callbackYTicks = function (this: Scale, tickValue: number, _index: unknown, _ticks: unknown) {
+const callbackYTicks = function (
+    this: Scale,
+    tickValue: number,
+    _index: unknown,
+    _ticks: unknown
+) {
     // ensure same size tick to algin the diagram
     let label = this.getLabelForValue(tickValue);
     return " ".repeat(8 - label.length) + label;
 };
 
 function calcPerYearData() {
-    let res: { label: number; planMin: number; planMax: number; actual: number }[] = [];
+    let res: {
+        label: number;
+        planMin: number;
+        planMax: number;
+        actual: number;
+    }[] = [];
 
     for (let y = yearMin; y < yearMax; y++) {
         let label = new Date(y, 6).getTime();
@@ -47,7 +84,9 @@ function calcPerYearData() {
 
         var actual = null;
         if (Date.now() >= new Date(y, 0).getTime()) {
-            actual = data.filter((e) => e.date.getFullYear() == y).reduce((acc, e) => acc + e.size, 0);
+            actual = data
+                .filter((e) => e.date.getFullYear() == y)
+                .reduce((acc, e) => acc + e.size, 0);
         }
 
         res.push({ label, planMin, planMax, actual });
@@ -57,7 +96,12 @@ function calcPerYearData() {
 }
 
 function calcPerMonthData() {
-    let res: { label: number; planMin: number; planMax: number; actual: number }[] = [];
+    let res: {
+        label: number;
+        planMin: number;
+        planMax: number;
+        actual: number;
+    }[] = [];
 
     for (let y = yearMin; y < yearMax; y++) {
         let planYearMin = IrccPlan[y].min;
@@ -71,7 +115,12 @@ function calcPerMonthData() {
 
             var actual = null;
             if (Date.now() >= new Date(y, m).getTime()) {
-                actual = data.filter((e) => e.date.getFullYear() == y && e.date.getMonth() == m).reduce((acc, e) => acc + e.size, 0);
+                actual = data
+                    .filter(
+                        (e) =>
+                            e.date.getFullYear() == y && e.date.getMonth() == m
+                    )
+                    .reduce((acc, e) => acc + e.size, 0);
 
                 planYearMax -= actual;
                 planYearMin -= actual;

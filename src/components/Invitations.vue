@@ -23,9 +23,28 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { Scale } from "chart.js/auto";
-import wasm_init, { wasm_invite_data, wasm_invitation_x_min, wasm_invitation_x_max, wasm_invitation_size_data, wasm_invitation_score_data } from "analyzer";
+import wasm_init, {
+    wasm_invite_data,
+    wasm_invitation_x_min,
+    wasm_invitation_x_max,
+    wasm_invitation_size_data,
+    wasm_invitation_score_data,
+} from "analyzer";
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, FocusScale, zoomPlugin);
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    LineElement,
+    PointElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    FocusScale,
+    zoomPlugin
+);
 await wasm_init();
 
 /*** ====== Misc ====== */
@@ -52,7 +71,12 @@ let invitationData = await wasm_invite_data();
 /*** ====== Callbacks Definition ====== ***/
 
 /** ensure same size tick to algin the diagram */
-const callback_scales_y_ticks = function (this: Scale, tickValue: number, _index: unknown, _ticks: unknown) {
+const callback_scales_y_ticks = function (
+    this: Scale,
+    tickValue: number,
+    _index: unknown,
+    _ticks: unknown
+) {
     let label = this.getLabelForValue(tickValue);
     return " ".repeat(8 - label.length) + label;
 };
@@ -86,13 +110,16 @@ const callback_zoom_onZoom = (context: { chart: ChartJS }) => {
 
     if (r > 2500) {
         chart.data = wasm_invitation_size_data(invitationData, "m");
-        chart.options.plugins.tooltip.callbacks.title = callback_tooltip_title_sizeChart_m;
+        chart.options.plugins.tooltip.callbacks.title =
+            callback_tooltip_title_sizeChart_m;
     } else if (r > 583) {
         chart.data = wasm_invitation_size_data(invitationData, "w");
-        chart.options.plugins.tooltip.callbacks.title = callback_tooltip_title_sizeChart_w;
+        chart.options.plugins.tooltip.callbacks.title =
+            callback_tooltip_title_sizeChart_w;
     } else {
         chart.data = wasm_invitation_size_data(invitationData, "d");
-        chart.options.plugins.tooltip.callbacks.title = callback_tooltip_title_sizeChart_d;
+        chart.options.plugins.tooltip.callbacks.title =
+            callback_tooltip_title_sizeChart_d;
     }
 
     chart.update("none");
@@ -120,8 +147,15 @@ let config_zoom = {
     },
 };
 
-const callback_tooltip_title_scoreChart = function <T extends keyof ChartTypeRegistry>(items: TooltipItem<T>[]) {
-    return items.map((x) => wasm_invitation_score_data(invitationData).tooltip.title[x.dataIndex]);
+const callback_tooltip_title_scoreChart = function <
+    T extends keyof ChartTypeRegistry
+>(items: TooltipItem<T>[]) {
+    return items.map(
+        (x) =>
+            wasm_invitation_score_data(invitationData).tooltip.title[
+                x.dataIndex
+            ]
+    );
 };
 let scoreChartConfig = {
     maintainAspectRatio: false,
@@ -155,14 +189,35 @@ let scoreChartConfig = {
     },
 } as ChartOptions<"line">;
 
-const callback_tooltip_title_sizeChart_m = function <T extends keyof ChartTypeRegistry>(items: TooltipItem<T>[]) {
-    return items.map((x) => wasm_invitation_size_data(invitationData, "m").tooltip.title[x.dataIndex]);
+const callback_tooltip_title_sizeChart_m = function <
+    T extends keyof ChartTypeRegistry
+>(items: TooltipItem<T>[]) {
+    return items.map(
+        (x) =>
+            wasm_invitation_size_data(invitationData, "m").tooltip.title[
+                x.dataIndex
+            ]
+    );
 };
-const callback_tooltip_title_sizeChart_w = function <T extends keyof ChartTypeRegistry>(items: TooltipItem<T>[]) {
-    return items.map((x) => wasm_invitation_size_data(invitationData, "w").tooltip.title[x.dataIndex]);
+const callback_tooltip_title_sizeChart_w = function <
+    T extends keyof ChartTypeRegistry
+>(items: TooltipItem<T>[]) {
+    return items.map(
+        (x) =>
+            wasm_invitation_size_data(invitationData, "w").tooltip.title[
+                x.dataIndex
+            ]
+    );
 };
-const callback_tooltip_title_sizeChart_d = function <T extends keyof ChartTypeRegistry>(items: TooltipItem<T>[]) {
-    return items.map((x) => wasm_invitation_size_data(invitationData, "d").tooltip.title[x.dataIndex]);
+const callback_tooltip_title_sizeChart_d = function <
+    T extends keyof ChartTypeRegistry
+>(items: TooltipItem<T>[]) {
+    return items.map(
+        (x) =>
+            wasm_invitation_size_data(invitationData, "d").tooltip.title[
+                x.dataIndex
+            ]
+    );
 };
 let sizeChartConfig = {
     maintainAspectRatio: false,

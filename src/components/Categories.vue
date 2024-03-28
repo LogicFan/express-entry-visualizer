@@ -2,16 +2,49 @@
 import {} from "vue";
 import { NCard, NGrid, NGridItem, NDataTable } from "naive-ui";
 import { Doughnut } from "vue-chartjs";
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale, TooltipItem, ChartData, ChartOptions } from "chart.js";
+import {
+    Chart as ChartJS,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale,
+    TooltipItem,
+    ChartData,
+    ChartOptions,
+} from "chart.js";
 import "chartjs-adapter-date-fns";
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, LogarithmicScale, TimeScale);
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    CategoryScale,
+    LinearScale,
+    LogarithmicScale,
+    TimeScale
+);
 
-import { Draw, DrawCategory, useCategoryColor } from "../composables/Constant.ts";
+import {
+    Draw,
+    DrawCategory,
+    useCategoryColor,
+} from "../composables/Constant.ts";
 import { useData } from "../composables/DataLoader.ts";
 import { TableColumns } from "naive-ui/es/data-table/src/interface";
 
-const categories = [DrawCategory.STEM, DrawCategory.HEALTH, DrawCategory.FRENCH, DrawCategory.AGRICULTURE, DrawCategory.TRADE, DrawCategory.TRANSPORT];
+const categories = [
+    DrawCategory.STEM,
+    DrawCategory.HEALTH,
+    DrawCategory.FRENCH,
+    DrawCategory.AGRICULTURE,
+    DrawCategory.TRADE,
+    DrawCategory.TRANSPORT,
+];
 
 const firstCategoryDraw = 252;
 const data = (await useData()).filter((e) => e.id >= firstCategoryDraw);
@@ -51,8 +84,12 @@ function calcInvitationSizeChartProps() {
                 tooltip: {
                     callbacks: {
                         label: function (context: TooltipItem<"doughnut">) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.raw as number) / total) * 100;
+                            const total = context.dataset.data.reduce(
+                                (a, b) => a + b,
+                                0
+                            );
+                            const percentage =
+                                ((context.raw as number) / total) * 100;
                             return percentage.toFixed(2) + "%";
                         },
                     },
@@ -90,7 +127,9 @@ function calcInvitationCountChartProps() {
 }
 
 function lastDrawOfCategory(d: Array<Draw>, c: DrawCategory): Draw {
-    return d.filter((e) => e.name == c).sort((a, b) => b.date.getTime() - a.date.getTime())[0];
+    return d
+        .filter((e) => e.name == c)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())[0];
 }
 
 function calcCandidateSizeChartProps() {
@@ -98,13 +137,17 @@ function calcCandidateSizeChartProps() {
 
     function estimatePercentage(d: Draw): number {
         const selected = d.size;
-        const above = d.pool.filter((e) => e.min > d.crs).reduce((a, b) => a + b.count, 0);
+        const above = d.pool
+            .filter((e) => e.min > d.crs)
+            .reduce((a, b) => a + b.count, 0);
         const m = d.pool.filter((e) => e.min <= d.crs && d.crs <= e.max)[0];
         const middle = ((m.max - d.crs) / (m.max - m.min)) * m.count;
         return selected / (middle + above);
     }
 
-    const dataC = categories.map((c) => lastDrawOfCategory(data, c)).map((e) => estimatePercentage(e));
+    const dataC = categories
+        .map((c) => lastDrawOfCategory(data, c))
+        .map((e) => estimatePercentage(e));
     const dataG = 1 - dataC.reduce((a, b) => a + b, 0);
 
     const datasets = [

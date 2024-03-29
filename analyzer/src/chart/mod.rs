@@ -1,3 +1,4 @@
+pub mod category;
 pub mod invite;
 pub mod pool;
 

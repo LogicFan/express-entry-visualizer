@@ -1,4 +1,4 @@
-use crate::data::{self, Category};
+use crate::data::{self, CategoryCode};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -161,7 +161,7 @@ impl Pool {
             self = self.non_pnp();
         }
 
-        if _invite.category == Category::General {
+        if _invite.category.code == CategoryCode::General {
             let m1 = self.multiplier_invite_general(_invite.size as f64);
             self = self * m1;
         } else {

@@ -1,6 +1,6 @@
 use crate::chart::dataset::{BarDataset, ChartData, LineDataset, Tooltip};
 use crate::chart::utils::{ToTimestamp, SERIALIZER};
-use crate::data::{Category, Invite};
+use crate::data::{CategoryCode, Invite};
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use itertools::Itertools;
 use serde::Serialize;
@@ -13,13 +13,13 @@ pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
         .iter()
         .map(|invitation| invitation.date.to_timestamp() as f64)
         .collect::<Vec<_>>();
-    let datasets = Category::values()
+    let datasets = CategoryCode::values()
         .iter()
         .map(|category| {
             let data = source
                 .iter()
                 .map(|invitation| {
-                    if invitation.category == *category {
+                    if invitation.category.code == *category {
                         Some(invitation.score as f64)
                     } else {
                         None
@@ -82,7 +82,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
         .into_iter()
         .map(|(bar_date, _)| bar_date.to_timestamp() as f64)
         .collect::<Vec<_>>();
-    let datasets = Category::values()
+    let datasets = CategoryCode::values()
         .iter()
         .map(|category| {
             let data = source
@@ -94,7 +94,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
                         invitations
                             .into_iter()
                             .map(|invitation| {
-                                if invitation.category == *category {
+                                if invitation.category.code == *category {
                                     invitation.size as f64
                                 } else {
                                     0_f64

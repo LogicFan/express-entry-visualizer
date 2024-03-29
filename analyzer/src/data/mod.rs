@@ -10,7 +10,7 @@ use raw::raw_data;
 use std::cmp::Ordering;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-pub use category::Category;
+pub use category::{Category, CategoryCode};
 pub use invite::Invite;
 pub use pathway::Pathway;
 pub use pool::Pool;

@@ -82,7 +82,7 @@ impl Invite {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.category != Category::Invalid && self.pathway.is_valid()
+        self.category.is_valid() && self.pathway.is_valid()
     }
 }
 

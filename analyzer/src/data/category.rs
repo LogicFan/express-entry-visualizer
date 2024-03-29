@@ -1,7 +1,4 @@
 use regex::Regex;
-use wasm_bindgen::UnwrapThrowExt;
-
-use crate::utils::console_log;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CategoryCode {

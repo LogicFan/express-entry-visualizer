@@ -16,11 +16,13 @@ import {
     TimeScale,
     Filler,
     ChartOptions,
+    TooltipItem,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import wasm_init, {
     wasm_pool_data,
     wasm_invite_data,
+    wasm_pool_n,
     wasm_pool_count_x_min,
     wasm_pool_count_x_max,
     wasm_pool_count_y_max,
@@ -73,6 +75,7 @@ let isRateChecked = ref(false);
 /*** ====== Chart Data Definition ====== ***/
 let poolData = await wasm_pool_data();
 let inviteData = await wasm_invite_data();
+let poolN = wasm_pool_n();
 let countChartData = wasm_pool_count_data(poolData);
 let rateChartData = wasm_pool_rate_data(poolData, inviteData);
 
@@ -114,8 +117,24 @@ let countChartConfig = {
     },
 } as ChartOptions<"line">;
 
+const callback_tooltip_title_rateChart = function (
+    items: TooltipItem<"line">[]
+) {
+    return items.map((_) => "Predicted Increase Rate");
+};
+const callback_tooltip_label_rateChart = function (item: TooltipItem<"line">) {
+    console.log(item);
+    console.log(rateChartData.tooltip.label[item.datasetIndex - poolN]);
+    return rateChartData.tooltip.label[item.datasetIndex - poolN];
+};
+
 let rateChartConfig = {
     maintainAspectRatio: false,
+    interaction: {
+        mode: "nearest",
+        axis: "xy",
+        intersect: false,
+    },
     scales: {
         x: {
             type: "time",
@@ -141,11 +160,17 @@ let rateChartConfig = {
             pan: { enabled: true, mode: "x" },
         },
         tooltip: {
-            enabled: false,
+            filter: function (item) {
+                return item.datasetIndex >= poolN;
+            },
+            callbacks: {
+                title: callback_tooltip_title_rateChart,
+                label: callback_tooltip_label_rateChart,
+            },
         },
         legend: {
             labels: {
-                filter: function (item, _) {
+                filter: function (item) {
                     return item.text != "none";
                 },
             },

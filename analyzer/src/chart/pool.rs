@@ -33,6 +33,11 @@ where
 }
 
 #[wasm_bindgen]
+pub fn wasm_pool_n() -> JsValue {
+    Pool::N.serialize(&SERIALIZER).unwrap_throw()
+}
+
+#[wasm_bindgen]
 pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
     let pool_data = unsafe { pool_data.as_ref().unwrap_throw() };
     let labels = pool_data
@@ -169,7 +174,12 @@ pub fn wasm_pool_rate_data(
         datasets,
         tooltip: Tooltip {
             title: None,
-            label: None,
+            label: Some(
+                (0..Pool::N)
+                    .rev()
+                    .map(|i| format!("{}: {:.3}", Pool::as_str(i), projected_rate[i]))
+                    .collect(),
+            ),
         },
     }
     .serialize(&SERIALIZER)

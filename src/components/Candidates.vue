@@ -20,10 +20,12 @@ import "chartjs-adapter-date-fns";
 import wasm_init, {
     wasm_pool_data,
     wasm_invite_data,
-    wasm_pool_x_min,
-    wasm_pool_x_max,
+    wasm_pool_count_x_min,
+    wasm_pool_count_x_max,
     wasm_pool_count_y_max,
     wasm_pool_count_data,
+    wasm_pool_rate_x_min,
+    wasm_pool_rate_x_max,
     wasm_pool_rate_data,
 } from "analyzer";
 
@@ -56,7 +58,7 @@ let countChartConfig = {
         },
         y: {
             min: 0,
-            stacked: true,
+            reverse: true,
         },
     },
     plugins: {
@@ -73,8 +75,8 @@ let countChartConfig = {
                     max: wasm_pool_count_y_max(poolData),
                 },
                 x: {
-                    min: wasm_pool_x_min(poolData),
-                    max: wasm_pool_x_max(poolData),
+                    min: wasm_pool_count_x_min(poolData),
+                    max: wasm_pool_count_x_max(poolData),
                 },
             },
             pan: { enabled: true, mode: "xy" },
@@ -91,6 +93,9 @@ let rateChartConfig = {
         x: {
             type: "time",
         },
+        y: {
+            reverse: true,
+        },
     },
     plugins: {
         zoom: {
@@ -102,14 +107,21 @@ let rateChartConfig = {
             },
             limits: {
                 x: {
-                    min: wasm_pool_x_min(poolData),
-                    max: wasm_pool_x_max(poolData),
+                    min: wasm_pool_rate_x_min(poolData),
+                    max: wasm_pool_rate_x_max(poolData),
                 },
             },
             pan: { enabled: true, mode: "x" },
         },
         tooltip: {
             enabled: false,
+        },
+        legend: {
+            labels: {
+                filter: function (item, _) {
+                    return item.text != "none";
+                },
+            },
         },
     },
 } as ChartOptions<"line">;

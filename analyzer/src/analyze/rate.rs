@@ -23,7 +23,7 @@ impl PartialOrd for RateModifier {
 }
 impl Ord for RateModifier {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.expiry.cmp(&other.expiry)
+        self.expiry.cmp(&other.expiry).reverse()
     }
 }
 
@@ -55,27 +55,31 @@ impl RateAccumulator {
             if modifier.expiry != date {
                 break;
             }
-
             self._rate = self._rate - modifier.value;
             self._heap.pop();
         }
     }
 }
 
-pub(crate) struct RateAnalyzer;
+pub struct RateAnalyzer;
 
 impl RateAnalyzer {
+    pub const SUBMIT_DAYS: usize = 60;
+
     pub fn pool_increase_rate(
         pool_data: &Vec<data::Pool>,
         invite_data: &Vec<data::Invite>,
-    ) -> Vec<data::Pool> {
+    ) -> (Vec<NaiveDate>, Vec<calc::Pool>) {
         if pool_data.len() == 0 {
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         }
+
         let date_0 = pool_data.first().unwrap().date;
         let date_n = pool_data.last().unwrap().date + Days::new(1);
 
-        let mut rates = Vec::with_capacity((date_n - date_0).num_days() as usize);
+        let capacity = (date_n - date_0).num_days() as usize;
+        let mut dates = Vec::with_capacity(capacity);
+        let mut rates = Vec::with_capacity(capacity);
 
         let mut pools = pool_data.clone();
         let mut invites = invite_data
@@ -128,17 +132,33 @@ impl RateAnalyzer {
 
                 let invited = invite_pool.invite(invite);
                 rate_acc.insert(RateModifier {
-                    value: invited / 60.0,
-                    expiry: date + Days::new(60),
+                    value: invited / Self::SUBMIT_DAYS as f64,
+                    expiry: date + Days::new(Self::SUBMIT_DAYS as u64),
                 });
                 invite_pool = invite_pool - invited; // remove already invited candidates to avoid duplicate counts.
                 invites.pop();
             }
 
-            rates.push(rate_acc.rate().into_dated(date));
+            if date > date_0 + Days::new(Self::SUBMIT_DAYS as u64) {
+                // ignore first 60 days since they are under estimated.
+                dates.push(date);
+                rates.push(rate_acc.rate());
+            }
             date = date + Days::new(1);
         }
 
-        rates
+        (dates, rates)
+    }
+
+    pub fn projected_rate(rate_data: &Vec<calc::Pool>) -> calc::Pool {
+        const PAST_DAYS: usize = 181;
+        rate_data
+            .iter()
+            .copied()
+            .rev()
+            .take(PAST_DAYS)
+            .reduce(|x, y| x + y)
+            .unwrap_or(calc::Pool::zero())
+            / PAST_DAYS as f64
     }
 }

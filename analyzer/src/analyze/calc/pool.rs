@@ -2,7 +2,7 @@ use crate::data::{self, Category};
 use chrono::NaiveDate;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Pool([f64; data::Pool::N]);
 
 impl Pool {

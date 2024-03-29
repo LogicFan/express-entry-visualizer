@@ -42,10 +42,13 @@ mod dataset {
         pub background_color: String,
         #[serde(rename = "borderColor")]
         pub border_color: String,
+        #[serde(rename = "borderDash")]
+        pub border_dash: [f64; 2],
         #[serde(rename = "spanGaps")]
         pub span_gaps: bool,
         #[serde(rename = "cubicInterpolationMode")]
         pub cubic_interpolation_mode: String,
+        pub tension: f64,
         pub fill: bool,
         #[serde(rename = "pointStyle")]
         pub point_style: PointStyle,
@@ -58,8 +61,10 @@ mod dataset {
                 data: Default::default(),
                 background_color: "#ffffff".into(),
                 border_color: "#ffffff".into(),
+                border_dash: [0.0, 0.0],
                 span_gaps: true,
                 cubic_interpolation_mode: "monotone".into(),
+                tension: 0.0,
                 fill: false,
                 point_style: PointStyle(Some("circle".into())),
             }

@@ -3,6 +3,7 @@ use super::utils::{parse_date, parse_i32};
 use chrono::NaiveDate;
 use itertools::Itertools;
 use std::cmp::Ordering;
+use std::ops::Index;
 use wasm_bindgen::throw_str;
 
 #[derive(Debug, Clone, Copy)]
@@ -28,6 +29,13 @@ impl PartialOrd for Pool {
 impl Ord for Pool {
     fn cmp(&self, other: &Self) -> Ordering {
         self.date.cmp(&other.date)
+    }
+}
+
+impl Index<usize> for Pool {
+    type Output = f64;
+    fn index(&self, i: usize) -> &Self::Output {
+        &self.data[i]
     }
 }
 

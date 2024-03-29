@@ -11,7 +11,7 @@ import Methodology from "./components/Methodology.vue";
 
 <template>
     <n-config-provider :theme="darkTheme">
-        <n-tabs type="line" animated>
+        <n-tabs type="line" default-value="candidates" animated>
             <n-tab-pane name="invitations" tab="Invitations">
                 <Suspense>
                     <Invitations />

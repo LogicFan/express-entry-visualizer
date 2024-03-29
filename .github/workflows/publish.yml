@@ -32,6 +32,7 @@ jobs:
                 ls -lR
                 git init -b main
                 git config user.name "GitAction"
+                git config user.email "git.action@example.com"
                 git remote add origin https://${{ secrets.PAT }}@github.com/LogicFan/logicfan.github.io.git
                 git fetch origin
                 git add -A

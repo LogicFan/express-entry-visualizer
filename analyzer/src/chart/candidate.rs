@@ -54,7 +54,7 @@ pub fn wasm_pool_count_y_max(pool_data: *const Vec<Pool>) -> JsValue {
         .iter()
         .map(|pool| pool.total())
         .max_by(|a, b| a.total_cmp(b))
-        .unwrap_throw()
+        .unwrap_or(0.0)
         .serialize(&SERIALIZER)
         .unwrap_throw()
 }
@@ -63,15 +63,9 @@ pub fn wasm_pool_count_y_max(pool_data: *const Vec<Pool>) -> JsValue {
 pub fn wasm_pool_x_min(pool_data: *const Vec<Pool>) -> JsValue {
     let source = unsafe { pool_data.as_ref().unwrap_throw() };
     source
-        .iter()
-        .min_by_key(|pool| pool.date)
-        .map(|pool| {
-            pool.date
-                .checked_sub_months(Months::new(1))
-                .unwrap_throw()
-                .to_timestamp() as f64
-        })
-        .unwrap_throw()
+        .first()
+        .map(|pool| (pool.date - Months::new(1)).to_timestamp() as f64)
+        .unwrap_or(0.0)
         .serialize(&SERIALIZER)
         .unwrap_throw()
 }
@@ -80,15 +74,9 @@ pub fn wasm_pool_x_min(pool_data: *const Vec<Pool>) -> JsValue {
 pub fn wasm_pool_x_max(pool_data: *const Vec<Pool>) -> JsValue {
     let source = unsafe { pool_data.as_ref().unwrap_throw() };
     source
-        .iter()
-        .max_by_key(|pool| pool.date)
-        .map(|pool| {
-            pool.date
-                .checked_add_months(Months::new(1))
-                .unwrap_throw()
-                .to_timestamp() as f64
-        })
-        .unwrap_throw()
+        .last()
+        .map(|pool| (pool.date + Months::new(1)).to_timestamp() as f64)
+        .unwrap_or(0.0)
         .serialize(&SERIALIZER)
         .unwrap_throw()
 }

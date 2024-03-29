@@ -1,21 +1,34 @@
+use super::raw::{EeRounds123En, RawData};
+use super::utils::{parse_date, parse_i32};
 use chrono::NaiveDate;
 use itertools::Itertools;
+use std::cmp::Ordering;
 use wasm_bindgen::throw_str;
 
-use super::raw::{EeRounds123En, RawData};
-
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Pool {
     pub data: [f64; Pool::N],
     pub date: NaiveDate,
 }
 
-fn parse_f64(x: &str) -> f64 {
-    x.replace(",", "").parse().unwrap_or(0.0)
+impl PartialEq for Pool {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
 }
 
-fn parse_date(x: &str) -> NaiveDate {
-    NaiveDate::parse_from_str(x, "%B %d, %Y").unwrap_or(NaiveDate::MIN)
+impl Eq for Pool {}
+
+impl PartialOrd for Pool {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Pool {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.date.cmp(&other.date)
+    }
 }
 
 impl Pool {
@@ -25,36 +38,37 @@ impl Pool {
         Self {
             date: parse_date(&raw_data.draw_distribution_as_on),
             data: [
-                parse_f64(&raw_data.dd17),
-                parse_f64(&raw_data.dd16),
-                parse_f64(&raw_data.dd15),
-                parse_f64(&raw_data.dd14),
-                parse_f64(&raw_data.dd13),
-                parse_f64(&raw_data.dd12),
-                parse_f64(&raw_data.dd11),
-                parse_f64(&raw_data.dd10),
-                parse_f64(&raw_data.dd8),
-                parse_f64(&raw_data.dd7),
-                parse_f64(&raw_data.dd6),
-                parse_f64(&raw_data.dd5),
-                parse_f64(&raw_data.dd4),
-                parse_f64(&raw_data.dd2),
-                parse_f64(&raw_data.dd1),
+                parse_i32(&raw_data.dd17) as f64,
+                parse_i32(&raw_data.dd16) as f64,
+                parse_i32(&raw_data.dd15) as f64,
+                parse_i32(&raw_data.dd14) as f64,
+                parse_i32(&raw_data.dd13) as f64,
+                parse_i32(&raw_data.dd12) as f64,
+                parse_i32(&raw_data.dd11) as f64,
+                parse_i32(&raw_data.dd10) as f64,
+                parse_i32(&raw_data.dd8) as f64,
+                parse_i32(&raw_data.dd7) as f64,
+                parse_i32(&raw_data.dd6) as f64,
+                parse_i32(&raw_data.dd5) as f64,
+                parse_i32(&raw_data.dd4) as f64,
+                parse_i32(&raw_data.dd2) as f64,
+                parse_i32(&raw_data.dd1) as f64,
             ],
         }
     }
 
+    // ensure sorted
     pub fn parse_all(raw_data: &EeRounds123En) -> Vec<Self> {
         raw_data
             .rounds
             .iter()
             .map(|round| Self::parse(round))
             .filter(|pool| pool.is_valid())
+            .sorted()
             .group_by(|pool| pool.date)
             .into_iter()
             .map(|(_, mut group)| group.nth(0).unwrap())
-            .sorted_by_key(|pool| pool.date)
-            .collect()
+            .collect::<Vec<_>>()
     }
 
     pub fn is_valid(&self) -> bool {
@@ -152,12 +166,10 @@ mod tests {
         let p = Pool::parse_all(&x);
 
         assert!(p.iter().all(|x| x.is_valid()));
-
-        println!("{:?}", p);
     }
 
     #[tokio::test]
     async fn color() {
-        println!("{}", Pool::as_color(5))
+        assert_eq!("#ff8d00", Pool::as_color(5))
     }
 }

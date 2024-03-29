@@ -1,11 +1,10 @@
+use crate::chart::dataset::{BarDataset, ChartData, LineDataset, Tooltip};
+use crate::chart::utils::{ToTimestamp, SERIALIZER};
+use crate::data::{Category, Invite};
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use itertools::Itertools;
 use serde::Serialize;
 use wasm_bindgen::{prelude::*, throw_str};
-
-use crate::chart::dataset::{BarDataset, ChartData, LineDataset, Tooltip};
-use crate::chart::utils::{ToTimestamp, SERIALIZER};
-use crate::data::{Category, Invite};
 
 #[wasm_bindgen]
 pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
@@ -67,7 +66,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
         NaiveDate::from_ymd_opt(date.year(), date.month(), 1).unwrap()
     }
 
-    let bar_size = if mode == "d" {
+    let fn_bar_date = if mode == "d" {
         per_day
     } else if mode == "w" {
         per_week
@@ -79,18 +78,18 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 
     let labels = source
         .iter()
-        .group_by(|invitation| bar_size(invitation.date))
+        .group_by(|invitation| fn_bar_date(invitation.date))
         .into_iter()
-        .map(|(bar_date, _invitations)| bar_date.to_timestamp() as f64)
+        .map(|(bar_date, _)| bar_date.to_timestamp() as f64)
         .collect::<Vec<_>>();
     let datasets = Category::values()
         .iter()
         .map(|category| {
             let data = source
                 .iter()
-                .group_by(|invitation| bar_size(invitation.date))
+                .group_by(|invitation| fn_bar_date(invitation.date))
                 .into_iter()
-                .map(|(_bar_date, invitations)| {
+                .map(|(_, invitations)| {
                     Some(
                         invitations
                             .into_iter()
@@ -109,7 +108,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 
             BarDataset {
                 label: category.as_str(),
-                data: data,
+                data,
                 background_color: category.as_color(),
                 border_color: category.as_color(),
                 stack: "0".into(),
@@ -119,46 +118,31 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 
     let tooltip_title = source
         .iter()
-        .group_by(|invitation| bar_size(invitation.date))
+        .group_by(|invitation| fn_bar_date(invitation.date))
         .into_iter()
         .map(|(bar_date, invitations)| {
-            let mut min_id = i64::MAX;
-            let mut max_id = i64::MIN;
-
-            for invitation in invitations {
-                if invitation.id < min_id {
-                    min_id = invitation.id
-                }
-                if invitation.id > max_id {
-                    max_id = invitation.id
-                }
-            }
-
-            let min_date = bar_date;
-            let max_date = if mode == "d" {
-                bar_date
-            } else if mode == "w" {
-                bar_date.checked_add_days(Days::new(7)).unwrap_throw()
-            } else {
-                bar_date.checked_add_months(Months::new(1)).unwrap_throw()
+            let id = match invitations.minmax() {
+                itertools::MinMaxResult::NoElements => "123".into(),
+                itertools::MinMaxResult::OneElement(x) => format!("{}", x.id),
+                itertools::MinMaxResult::MinMax(x, y) => format!("{} - {}", x.id, y.id),
             };
 
-            fn format_collapse(from: String, to: String) -> String {
-                if from == to {
-                    return format!("{}", from);
+            let date = if mode == "d" {
+                format!("{}", bar_date.format("%Y-%m-%d"))
+            } else {
+                let bar_date2 = if mode == "w" {
+                    bar_date + Days::new(7)
                 } else {
-                    format!("{} to {}", from, to)
-                }
-            }
+                    bar_date + Months::new(1)
+                };
+                format!(
+                    "{} - {}",
+                    bar_date.format("%Y-%m-%d"),
+                    bar_date2.format("%Y-%m-%d")
+                )
+            };
 
-            format!(
-                "{}({})",
-                format_collapse(
-                    min_date.format("%Y-%m-%d").to_string(),
-                    max_date.format("%Y-%m-%d").to_string()
-                ),
-                format_collapse(min_id.to_string(), max_id.to_string())
-            )
+            format!("{}({})", date, id)
         })
         .collect::<Vec<_>>();
 
@@ -178,34 +162,20 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 pub fn wasm_invite_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     source
-        .iter()
-        .min_by_key(|invitation| invitation.date)
-        .map(|invitation| {
-            invitation
-                .date
-                .checked_sub_months(Months::new(1))
-                .unwrap_throw()
-                .to_timestamp() as f64
-        })
-        .unwrap_throw()
+        .first()
+        .map(|invitation| (invitation.date - Months::new(1)).to_timestamp() as f64)
+        .unwrap_or(0.0)
         .serialize(&SERIALIZER)
-        .unwrap_throw()
+        .unwrap()
 }
 
 #[wasm_bindgen]
 pub fn wasm_invite_x_max(invitation_data: *const Vec<Invite>) -> JsValue {
     let source = unsafe { invitation_data.as_ref().unwrap_throw() };
     source
-        .iter()
-        .max_by_key(|invitation| invitation.date)
-        .map(|invitation| {
-            invitation
-                .date
-                .checked_add_months(Months::new(1))
-                .unwrap_throw()
-                .to_timestamp() as f64
-        })
-        .unwrap_throw()
+        .last()
+        .map(|invitation| (invitation.date + Months::new(1)).to_timestamp() as f64)
+        .unwrap_or(0.0)
         .serialize(&SERIALIZER)
-        .unwrap_throw()
+        .unwrap()
 }

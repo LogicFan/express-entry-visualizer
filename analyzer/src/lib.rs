@@ -1,4 +1,3 @@
-mod analyze;
-pub mod data;
+// mod analyze;
 pub mod chart;
-
+pub mod data;

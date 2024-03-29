@@ -1,5 +1,4 @@
 use crate::data::{self, Category};
-use chrono::NaiveDate;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -12,16 +11,8 @@ impl Pool {
         Self([0_f64; Self::N])
     }
 
-    pub fn into_dated(self, date: NaiveDate) -> data::Pool {
-        data::Pool { data: self.0, date }
-    }
-
     pub fn total(&self) -> f64 {
         self.0.iter().sum()
-    }
-
-    pub fn count(&self, i: usize) -> f64 {
-        self[i]
     }
 
     pub fn min_score(i: usize) -> i64 {

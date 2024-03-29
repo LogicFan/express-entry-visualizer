@@ -4,7 +4,7 @@ use crate::analyze::smooth::ExponentialSmoothing;
 use crate::chart::dataset::{ChartData, LineDataset, Tooltip};
 use crate::chart::utils::{ToTimestamp, SERIALIZER};
 use crate::data::{Invite, Pool};
-use chrono::{Days, Months};
+use chrono::Days;
 use serde::Serialize;
 use std::iter;
 use std::ops::{Index, Mul};
@@ -27,11 +27,7 @@ where
         Self { data }
     }
 
-    pub fn bottom_up(&self, i: usize) -> f64 {
-        (0..i).map(|k| self.data[k]).sum()
-    }
-
-    pub fn top_down(&self, i: usize) -> f64 {
+    pub fn sum(&self, i: usize) -> f64 {
         (i..Self::N).map(|k| self.data[k]).sum()
     }
 }
@@ -49,7 +45,7 @@ pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
         .map(|i| {
             let data = pool_data
                 .iter()
-                .map(|pool| Some(PoolAcc::new(*pool).top_down(i)))
+                .map(|pool| Some(PoolAcc::new(*pool).sum(i)))
                 .collect::<Vec<_>>();
 
             LineDataset {
@@ -135,7 +131,7 @@ pub fn wasm_pool_rate_data(
     let actual = (0..Pool::N).into_iter().rev().map(|i| {
         let data = rate_data
             .iter()
-            .map(|rate| Some(PoolAcc::new(*rate).top_down(i)))
+            .map(|rate| Some(PoolAcc::new(*rate).sum(i)))
             .chain(iter::repeat(None).take(2))
             .collect::<Vec<_>>();
 
@@ -152,7 +148,7 @@ pub fn wasm_pool_rate_data(
     let predict = (0..Pool::N).into_iter().rev().map(|i| {
         let data = iter::repeat(None)
             .take(rate_data.len())
-            .chain(iter::repeat(Some(PoolAcc::new(projected_rate).top_down(i))).take(2))
+            .chain(iter::repeat(Some(PoolAcc::new(projected_rate).sum(i))).take(2))
             .collect::<Vec<_>>();
 
         LineDataset {

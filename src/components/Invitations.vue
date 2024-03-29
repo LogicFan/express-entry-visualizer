@@ -67,6 +67,8 @@ const offFocusChart = function (): ChartJS {
 
 /*** ====== Chart Data Definition ====== ***/
 let invitationData = await wasm_invite_data();
+let scoreChartData = wasm_invite_score_data(invitationData)
+let sizeChartData = wasm_invite_size_data(invitationData, 'm')
 
 /*** ====== Callbacks Definition ====== ***/
 
@@ -276,7 +278,7 @@ let sizeChartConfig = {
                 @mouseover="onFocusChartRef = scoreChartRef"
                 @mouseleave="onFocusChartRef = null"
                 :options="scoreChartConfig"
-                :data="wasm_invite_score_data(invitationData)"
+                :data="scoreChartData"
                 :style="{
                     height: '30vh',
                     width: '100%',
@@ -291,7 +293,7 @@ let sizeChartConfig = {
                 @mouseover="onFocusChartRef = sizeChartRef"
                 @mouseleave="onFocusChartRef = null"
                 :options="sizeChartConfig"
-                :data="wasm_invite_size_data(invitationData, 'm')"
+                :data="sizeChartData"
                 :style="{
                     height: '30vh',
                     width: '100%',

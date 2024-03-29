@@ -73,6 +73,8 @@ let isRateChecked = ref(false);
 /*** ====== Chart Data Definition ====== ***/
 let poolData = await wasm_pool_data();
 let inviteData = await wasm_invite_data();
+let countChartData = wasm_pool_count_data(poolData);
+let rateChartData = wasm_pool_rate_data(poolData, inviteData);
 
 /*** ====== Chart Config Definition ====== ***/
 let countChartConfig = {
@@ -168,7 +170,7 @@ let rateChartConfig = {
             <Line
                 ref="rateChartRef"
                 :options="rateChartConfig"
-                :data="wasm_pool_rate_data(poolData, inviteData)"
+                :data="rateChartData"
                 :style="{
                     height: '70vh',
                     width: '100%',
@@ -179,7 +181,7 @@ let rateChartConfig = {
             <Line
                 ref="countChartRef"
                 :options="countChartConfig"
-                :data="wasm_pool_count_data(poolData)"
+                :data="countChartData"
                 :style="{
                     height: '70vh',
                     width: '100%',

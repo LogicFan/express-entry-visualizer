@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, CSSProperties } from "vue";
 import { NCard, NSwitch } from "naive-ui";
 import { Line } from "vue-chartjs";
 import zoomPlugin from "chartjs-plugin-zoom";
@@ -44,6 +45,30 @@ ChartJS.register(
 );
 
 await wasm_init();
+
+/*** ====== Misc ====== */
+const checkboxStyle = function ({
+    focused,
+    checked,
+}: {
+    focused: boolean;
+    checked: boolean;
+}) {
+    const style: CSSProperties = {};
+    if (checked) {
+        style.background = "#e67e22";
+        if (focused) {
+            style.boxShadow = "0 0 0 2px #e67e2240";
+        }
+    } else {
+        style.background = "#3498db";
+        if (focused) {
+            style.boxShadow = "0 0 0 2px #3498db40";
+        }
+    }
+    return style;
+};
+let isRateChecked = ref(false);
 
 /*** ====== Chart Data Definition ====== ***/
 let poolData = await wasm_pool_data();
@@ -130,27 +155,31 @@ let rateChartConfig = {
 <template>
     <n-card title="Candidates in the Pool">
         <template #header-extra>
-            <n-switch>
-                <template #checked> Big wheels keep on turnin' </template>
-                <template #unchecked> Carry me home to see my kin </template>
+            <n-switch
+                :round="false"
+                :rail-style="checkboxStyle"
+                v-model:value="isRateChecked"
+            >
+                <template #checked> Increase Rate </template>
+                <template #unchecked> Total Count </template>
             </n-switch>
         </template>
-        <div>
+        <div v-if="isRateChecked">
             <Line
-                ref="countChartRef"
-                :options="countChartConfig"
-                :data="wasm_pool_count_data(poolData)"
+                ref="rateChartRef"
+                :options="rateChartConfig"
+                :data="wasm_pool_rate_data(poolData, inviteData)"
                 :style="{
                     height: '70vh',
                     width: '100%',
                 }"
             />
         </div>
-        <div>
+        <div v-else>
             <Line
-                ref="rateChartRef"
-                :options="rateChartConfig"
-                :data="wasm_pool_rate_data(poolData, inviteData)"
+                ref="countChartRef"
+                :options="countChartConfig"
+                :data="wasm_pool_count_data(poolData)"
                 :style="{
                     height: '70vh',
                     width: '100%',

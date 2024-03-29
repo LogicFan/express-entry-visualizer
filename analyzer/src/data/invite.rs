@@ -2,8 +2,8 @@ use super::raw::{EeRounds123En, RawData};
 use super::utils::{parse_date, parse_i32};
 use super::{Category, Pathway};
 use chrono::NaiveDate;
-use std::cmp::Ordering;
 use itertools::Itertools;
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InviteId(i32, i32);

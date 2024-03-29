@@ -1,12 +1,20 @@
-use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
-
 use crate::data::{self, Category};
+use chrono::NaiveDate;
+use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Pool([f64; data::Pool::N]);
 
 impl Pool {
     const N: usize = data::Pool::N;
+
+    pub fn zero() -> Self {
+        Self([0_f64; Self::N])
+    }
+
+    pub fn into_dated(self, date: NaiveDate) -> data::Pool {
+        data::Pool { data: self.0, date }
+    }
 
     pub fn total(&self) -> f64 {
         self.0.iter().sum()
@@ -157,115 +165,24 @@ impl Pool {
         self
     }
 
-    pub fn invite(mut self, invitation: &data::Invite) -> Self {
-        if !invitation.pathway.is_pnp() {
+    pub fn invite(mut self, _invite: &data::Invite) -> Self {
+        if !_invite.pathway.is_pnp() {
             self = self.non_pnp();
         }
 
-        if invitation.category == Category::General {
-            let m1 = self.multiplier_invite_general(invitation.size as f64);
+        if _invite.category == Category::General {
+            let m1 = self.multiplier_invite_general(_invite.size as f64);
             self = self * m1;
         } else {
-            let m1 = self.multiplier_within_score(invitation.score as f64, 1200.0);
+            let m1 = self.multiplier_within_score(_invite.score as f64, 1200.0);
             self = self * m1;
-            let m2 = invitation.size as f64 / self.total();
+            let m2 = _invite.size as f64 / self.total();
             self = self * m2;
         }
 
         self
     }
 }
-
-// pub trait PoolAnalyze {
-//     fn count_above(&self, score: i64) -> f64;
-//     fn count_within(&self, min: i64, max: i64) -> f64 {
-//         self.count_above(min) - self.count_above(max)
-//     }
-//     fn invite(&mut self, invitation: &Invitation);
-//     fn increment(&self, other: &Pool, invitations: &Vec<Invitation>)
-//         -> [f64; Pool::SUB_POOL_COUNT];
-// }
-
-// impl PoolAnalyze for Pool {
-//     fn count_above(&self, score: i64) -> f64 {
-//         let mut count = 0_f64;
-//         for i in 0..Pool::N {
-//             let sub_pool = &self.data[i];
-
-//             if sub_pool.min_score > score {
-//                 count += sub_pool.population as f64;
-//             } else if sub_pool.max_score >= score {
-//                 let pct = (sub_pool.max_score - score) as f64
-//                     / (sub_pool.max_score - sub_pool.min_score) as f64;
-
-//                 count += sub_pool.population as f64 * pct
-//             }
-//         }
-//         count
-//     }
-
-//     fn invite(&mut self, invitation: &Invitation) {
-//         if invitation.category == Category::General {
-//             let mut count = invitation.size;
-//             for i in (0..Pool::N).rev() {
-//                 if count > self.data[i].population {
-//                     count -= self.data[i].population;
-//                     self.data[i].population = 0;
-//                 } else {
-//                     self.data[i].population -= count;
-//                     count = 0;
-//                     break;
-//                 }
-//             }
-//         } else {
-//             let count = invitation.size;
-//             let score = invitation.score;
-//             let general_count = self.count_above(score);
-//             let pct = count as f64 / general_count;
-
-//             for i in 0..Pool::N {
-//                 let sub_pool = &mut self.data[i];
-//                 if sub_pool.min_score > score {
-//                     sub_pool.population =
-//                         f64::round(sub_pool.population as f64 - sub_pool.population as f64 * pct)
-//                             as i64;
-//                 } else if sub_pool.max_score >= score {
-//                     let sub_pool_pct = (sub_pool.max_score - score) as f64
-//                         / (sub_pool.max_score - sub_pool.min_score) as f64;
-
-//                     sub_pool.population = f64::round(
-//                         sub_pool.population as f64
-//                             - sub_pool.population as f64 * pct * sub_pool_pct,
-//                     ) as i64;
-//                 }
-//             }
-//         }
-//     }
-
-//     fn increment(
-//         &self,
-//         other: &Pool,
-//         invitations: &Vec<Invitation>,
-//     ) -> [f64; Pool::SUB_POOL_COUNT] {
-//         let mut pool_after_invite = *self;
-//         for invitation in invitations {
-//             if self.date <= invitation.date && invitation.date < other.date {
-//                 pool_after_invite.invite(invitation);
-//             }
-//         }
-
-//         let mut res = [0_f64; Pool::SUB_POOL_COUNT];
-//         let days_between = other.date.signed_duration_since(self.date).num_days() as f64;
-//         pool_after_invite
-//             .data
-//             .iter()
-//             .zip(other.data.iter())
-//             .map(|(before, after)| (after.population - before.population) as f64 / days_between)
-//             .enumerate()
-//             .for_each(|(i, v)| res[i] = v);
-//         res
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

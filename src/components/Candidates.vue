@@ -19,10 +19,12 @@ import {
 import "chartjs-adapter-date-fns";
 import wasm_init, {
     wasm_pool_data,
+    wasm_invite_data,
     wasm_pool_x_min,
     wasm_pool_x_max,
     wasm_pool_count_y_max,
     wasm_pool_count_data,
+    wasm_pool_rate_data,
 } from "analyzer";
 
 ChartJS.register(
@@ -43,10 +45,10 @@ await wasm_init();
 
 /*** ====== Chart Data Definition ====== ***/
 let poolData = await wasm_pool_data();
-// let invitationData = await wasm_invite_data();
+let inviteData = await wasm_invite_data();
 
 /*** ====== Chart Config Definition ====== ***/
-let poolCountConfig = {
+let countChartConfig = {
     maintainAspectRatio: false,
     scales: {
         x: {
@@ -82,6 +84,35 @@ let poolCountConfig = {
         },
     },
 } as ChartOptions<"line">;
+
+let rateChartConfig = {
+    maintainAspectRatio: false,
+    scales: {
+        x: {
+            type: "time",
+        },
+    },
+    plugins: {
+        zoom: {
+            zoom: {
+                wheel: {
+                    enabled: true,
+                },
+                mode: "x",
+            },
+            limits: {
+                x: {
+                    min: wasm_pool_x_min(poolData),
+                    max: wasm_pool_x_max(poolData),
+                },
+            },
+            pan: { enabled: true, mode: "x" },
+        },
+        tooltip: {
+            enabled: false,
+        },
+    },
+} as ChartOptions<"line">;
 </script>
 
 <template>
@@ -94,9 +125,20 @@ let poolCountConfig = {
         </template>
         <div>
             <Line
-                ref="candidatesChart"
-                :options="poolCountConfig"
+                ref="countChartRef"
+                :options="countChartConfig"
                 :data="wasm_pool_count_data(poolData)"
+                :style="{
+                    height: '70vh',
+                    width: '100%',
+                }"
+            />
+        </div>
+        <div>
+            <Line
+                ref="rateChartRef"
+                :options="rateChartConfig"
+                :data="wasm_pool_rate_data(poolData, inviteData)"
                 :style="{
                     height: '70vh',
                     width: '100%',

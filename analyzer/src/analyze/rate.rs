@@ -64,7 +64,7 @@ impl RateAccumulator {
 pub struct RateAnalyzer;
 
 impl RateAnalyzer {
-    pub const SUBMIT_DAYS: usize = 60;
+    pub const SUBMIT_DAYS: usize = 15;
 
     pub fn pool_increase_rate(
         pool_data: &Vec<data::Pool>,

@@ -7,7 +7,7 @@ use crate::data::{Invite, Pool};
 use chrono::{Days, Months};
 use serde::Serialize;
 use std::iter;
-use std::ops::Index;
+use std::ops::{Index, Mul};
 use wasm_bindgen::prelude::*;
 
 struct PoolAcc<T>
@@ -84,6 +84,7 @@ pub fn wasm_pool_count_y_max(pool_data: *const Vec<Pool>) -> JsValue {
         .map(|pool| pool.total())
         .max_by(|a, b| a.total_cmp(b))
         .unwrap_or(0.0)
+        .mul(1.1)
         .serialize(&SERIALIZER)
         .unwrap_throw()
 }
@@ -120,7 +121,7 @@ pub fn wasm_pool_rate_data(
 
     let (mut rate_labels, mut rate_data) = RateAnalyzer::pool_increase_rate(pool_data, invite_data);
     let projected_rate = RateAnalyzer::projected_rate(&rate_data);
-    ExponentialSmoothing::smooth(&mut rate_data, 0.1);
+    ExponentialSmoothing::smooth(&mut rate_data, 0.03278688524);
 
     // insert projected_rate
     rate_labels.push(*rate_labels.last().unwrap() + Days::new(1));

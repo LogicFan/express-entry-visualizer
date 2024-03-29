@@ -19,5 +19,7 @@ Data are directly from IRCC
 
 ### Rate
 The increase rate for each pool bucket if there is no IRCC draw. Here are the assumptions
-1. candidate who get their ITA will submit their application uniformly within 60 days window
+1. candidate who get their ITA will submit their application uniformly within 15 days window
 2. each category follows the same score distribution as the general.
+3. diagram is smoothed using exponential moving average with 60 days windows.
+4. the projected rate uses the average increase rate of 180 most recent observed days.

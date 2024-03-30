@@ -2,6 +2,7 @@ pub struct ExponentialSmoothing;
 use std::ops::{Add, Mul};
 
 impl ExponentialSmoothing {
+    // TODO: support ata of variable length
     pub fn smooth<T>(data: &mut Vec<T>, alpha: f64)
     where
         T: Add<Output = T> + Mul<f64, Output = T> + Copy,

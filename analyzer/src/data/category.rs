@@ -1,8 +1,9 @@
 use regex::Regex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
 pub enum CategoryCode {
-    General,
+    General = 0,
     Province,
     Inland,
     Oversea,
@@ -18,8 +19,10 @@ pub enum CategoryCode {
 }
 
 impl CategoryCode {
-    pub fn values() -> &'static [CategoryCode] {
-        return &[
+    pub const N: usize = 10;
+
+    pub fn values() -> [CategoryCode; Self::N] {
+        return [
             Self::General,
             Self::Province,
             Self::Inland,

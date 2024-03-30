@@ -91,7 +91,6 @@ mod tests {
     use super::super::raw::raw_data;
     use super::{Invite, InviteId};
     use itertools::Itertools;
-    use tokio;
 
     #[tokio::test]
     async fn parse_data() {

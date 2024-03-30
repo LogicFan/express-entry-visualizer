@@ -8,7 +8,7 @@ use crate::data;
 #[derive(Debug, Clone, Copy)]
 struct RateModifier {
     expiry: NaiveDate,
-    value: calc::Pool,
+    value: calc::ScorePool,
 }
 impl PartialEq for RateModifier {
     fn eq(&self, other: &Self) -> bool {
@@ -29,18 +29,18 @@ impl Ord for RateModifier {
 
 struct RateAccumulator {
     _heap: BinaryHeap<RateModifier>,
-    _rate: calc::Pool,
+    _rate: calc::ScorePool,
 }
 
 impl RateAccumulator {
     fn new() -> Self {
         Self {
             _heap: BinaryHeap::new(),
-            _rate: calc::Pool::zero(),
+            _rate: calc::ScorePool::zero(),
         }
     }
 
-    fn rate(&self) -> calc::Pool {
+    fn rate(&self) -> calc::ScorePool {
         self._rate
     }
 
@@ -66,10 +66,11 @@ pub struct RateAnalyzer;
 impl RateAnalyzer {
     pub const SUBMIT_DAYS: usize = 15;
 
+    // TODO: optimize the algorithm
     pub fn pool_increase_rate(
         pool_data: &Vec<data::Pool>,
         invite_data: &Vec<data::Invite>,
-    ) -> (Vec<NaiveDate>, Vec<calc::Pool>) {
+    ) -> (Vec<NaiveDate>, Vec<calc::ScorePool>) {
         if pool_data.len() == 0 {
             return (Vec::new(), Vec::new());
         }
@@ -92,7 +93,7 @@ impl RateAnalyzer {
         invites.reverse();
 
         let mut rate_acc = RateAccumulator::new();
-        let mut invite_pool = calc::Pool::zero(); // based on how date_0 is defined, this value will be immediately re-assigned.
+        let mut invite_pool = calc::ScorePool::zero(); // based on how date_0 is defined, this value will be immediately re-assigned.
 
         let mut date = date_0;
         while date != date_n {
@@ -112,8 +113,8 @@ impl RateAnalyzer {
 
                                 // based on how pool are constructed, next_pool.date > current_pool.date
                                 let days = (next_pool.date - date).num_days() as f64;
-                                let pool0: calc::Pool = invite_pool;
-                                let pool1: calc::Pool = next_pool.into();
+                                let pool0: calc::ScorePool = invite_pool;
+                                let pool1: calc::ScorePool = next_pool.into();
                                 rate_acc.insert(RateModifier {
                                     value: (pool1 - pool0) / days,
                                     expiry,
@@ -150,7 +151,7 @@ impl RateAnalyzer {
         (dates, rates)
     }
 
-    pub fn projected_rate(rate_data: &Vec<calc::Pool>) -> calc::Pool {
+    pub fn projected_rate(rate_data: &Vec<calc::ScorePool>) -> calc::ScorePool {
         const PAST_DAYS: usize = 181;
         rate_data
             .iter()
@@ -158,7 +159,7 @@ impl RateAnalyzer {
             .rev()
             .take(PAST_DAYS)
             .reduce(|x, y| x + y)
-            .unwrap_or(calc::Pool::zero())
+            .unwrap_or(calc::ScorePool::zero())
             / PAST_DAYS as f64
     }
 }

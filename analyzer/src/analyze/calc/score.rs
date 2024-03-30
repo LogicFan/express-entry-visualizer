@@ -2,13 +2,13 @@ use crate::data::{self, CategoryCode};
 use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct Pool([f64; data::Pool::N]);
+pub struct ScorePool([f64; data::Pool::N]);
 
-impl Pool {
+impl ScorePool {
     const N: usize = data::Pool::N;
 
     pub fn zero() -> Self {
-        Self([0_f64; Self::N])
+        Self::default()
     }
 
     pub fn total(&self) -> f64 {
@@ -24,98 +24,98 @@ impl Pool {
     }
 }
 
-impl Default for Pool {
+impl Default for ScorePool {
     fn default() -> Self {
         Self([0_f64; Self::N])
     }
 }
 
-impl From<data::Pool> for Pool {
+impl From<data::Pool> for ScorePool {
     fn from(value: data::Pool) -> Self {
         Self(value.data)
     }
 }
 
-impl Index<usize> for Pool {
+impl Index<usize> for ScorePool {
     type Output = f64;
     fn index(&self, i: usize) -> &Self::Output {
         &self.0[i]
     }
 }
 
-impl IndexMut<usize> for Pool {
+impl IndexMut<usize> for ScorePool {
     fn index_mut(&mut self, i: usize) -> &mut Self::Output {
         &mut self.0[i]
     }
 }
 
-impl Add for Pool {
+impl Add for ScorePool {
     type Output = Self;
 
     fn add(mut self, rhs: Self) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] + rhs[i];
         }
         self
     }
 }
 
-impl Sub for Pool {
+impl Sub for ScorePool {
     type Output = Self;
 
     fn sub(mut self, rhs: Self) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] - rhs[i];
         }
         self
     }
 }
 
-impl Mul for Pool {
+impl Mul for ScorePool {
     type Output = Self;
 
     fn mul(mut self, rhs: Self) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] * rhs[i];
         }
         self
     }
 }
 
-impl Div for Pool {
+impl Div for ScorePool {
     type Output = Self;
 
     fn div(mut self, rhs: Self) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] / rhs[i];
         }
         self
     }
 }
 
-impl Mul<f64> for Pool {
+impl Mul<f64> for ScorePool {
     type Output = Self;
 
     fn mul(mut self, rhs: f64) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] * rhs;
         }
         self
     }
 }
 
-impl Div<f64> for Pool {
+impl Div<f64> for ScorePool {
     type Output = Self;
 
     fn div(mut self, rhs: f64) -> Self::Output {
-        for i in 0..Pool::N {
+        for i in 0..ScorePool::N {
             self[i] = self[i] / rhs;
         }
         self
     }
 }
 
-impl Pool {
+impl ScorePool {
     fn multiplier_invite_general(&self, mut count: f64) -> Self {
         let mut multiplier = Self::default();
 
@@ -137,8 +137,8 @@ impl Pool {
         let mut multiplier = Self::default();
 
         for i in (0..Self::N).rev() {
-            let min_d = Pool::min_score(i) as f64;
-            let max_d = Pool::max_score(i) as f64;
+            let min_d = ScorePool::min_score(i) as f64;
+            let max_d = ScorePool::max_score(i) as f64;
 
             let min_n = f64::min(max_d, f64::max(min_score, min_d));
             let max_n = f64::max(min_d, f64::min(max_score, max_d));
@@ -150,7 +150,7 @@ impl Pool {
     }
 }
 
-impl Pool {
+impl ScorePool {
     pub fn non_pnp(mut self) -> Self {
         self[14] = 0_f64; // 14-th bucket is 601 to 1200
         self
@@ -177,12 +177,11 @@ impl Pool {
 
 #[cfg(test)]
 mod tests {
-    use super::Pool;
-    use tokio;
+    use super::ScorePool;
 
     #[tokio::test]
     async fn non_pnp() {
-        let pool = Pool([
+        let pool = ScorePool([
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
         ]);
 
@@ -195,7 +194,7 @@ mod tests {
 
     #[tokio::test]
     async fn multiplier_invite_general() {
-        let pool = Pool([
+        let pool = ScorePool([
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
         ]);
 
@@ -214,7 +213,7 @@ mod tests {
 
     #[tokio::test]
     async fn multiplier_within_score() {
-        let pool = Pool([
+        let pool = ScorePool([
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0,
         ]);
 

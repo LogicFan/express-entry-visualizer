@@ -66,7 +66,6 @@ pub struct RateAnalyzer;
 impl RateAnalyzer {
     pub const SUBMIT_DAYS: usize = 15;
 
-    // TODO: optimize the algorithm
     pub fn pool_increase_rate(
         pool_data: &Vec<data::Pool>,
         invite_data: &Vec<data::Invite>,

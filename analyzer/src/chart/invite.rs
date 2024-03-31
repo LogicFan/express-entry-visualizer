@@ -4,6 +4,8 @@ use crate::data::{CategoryCode, Invite};
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use itertools::Itertools;
 use serde::Serialize;
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[wasm_bindgen]
@@ -55,6 +57,17 @@ pub fn wasm_invite_score_data(invite_data: *const Vec<Invite>) -> JsValue {
 
 #[wasm_bindgen]
 pub fn wasm_invite_size_data(invite_data: *const Vec<Invite>, mode: String) -> JsValue {
+    static CACHE: Mutex<OnceLock<HashMap<String, ChartData<BarDataset>>>> =
+        Mutex::new(OnceLock::new());
+    {
+        let mutex_guard = CACHE.lock().unwrap();
+        let cache = mutex_guard.get_or_init(|| HashMap::new());
+        match cache.get(&mode) {
+            Some(value) => return value.serialize(&SERIALIZER).unwrap_throw(),
+            None => (),
+        }
+    }
+
     let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
     fn per_day(date: NaiveDate) -> NaiveDate {
         date
@@ -146,16 +159,22 @@ pub fn wasm_invite_size_data(invite_data: *const Vec<Invite>, mode: String) -> J
         })
         .collect();
 
-    ChartData {
-        labels,
-        datasets,
-        tooltip: Tooltip {
-            title: vec![tooltip_title],
-            label: Vec::new(),
-        },
+    {
+        let mut mutex_guard = CACHE.lock().unwrap();
+        let cache = mutex_guard.get_mut().unwrap();
+        cache.insert(
+            mode.clone(),
+            ChartData {
+                labels,
+                datasets,
+                tooltip: Tooltip {
+                    title: vec![tooltip_title],
+                    label: Vec::new(),
+                },
+            },
+        );
+        cache[&mode].serialize(&SERIALIZER).unwrap_throw()
     }
-    .serialize(&SERIALIZER)
-    .unwrap_throw()
 }
 
 #[wasm_bindgen]

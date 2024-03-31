@@ -109,11 +109,6 @@ impl Div<f64> for CategoryPool {
 }
 
 impl CategoryPool {
-    pub fn non_pnp(mut self) -> Self {
-        self[CategoryCode::Province] = 0_f64;
-        self
-    }
-
     pub fn normalize(self) -> Self {
         if self.total() == 0.0 {
             Self::default()

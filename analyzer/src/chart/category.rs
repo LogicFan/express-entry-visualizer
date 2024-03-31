@@ -1,15 +1,15 @@
+use super::dataset::PointStyle;
 use super::utils::Stacker;
 use crate::analyze::category::CategoryAnalyzer;
 use crate::chart::dataset::{ChartData, LineDataset, Tooltip};
 use crate::chart::utils::{ToTimestamp, SERIALIZER};
 use crate::data::{CategoryCode, Invite, Pool};
+use itertools::Itertools;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn wasm_category_years(
-    invite_data: *const Vec<Invite>,
-) -> JsValue {
+pub fn wasm_category_years(invite_data: *const Vec<Invite>) -> JsValue {
     let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
     CategoryAnalyzer::of_category_years(invite_data)
         .keys()
@@ -46,6 +46,7 @@ pub fn wasm_category_invite_data(
 
     let datasets = categories
         .iter()
+        .sorted_by_key(|category| **category as usize)
         .map(|category| {
             let data: Vec<_> = category_invites
                 .iter()
@@ -57,22 +58,44 @@ pub fn wasm_category_invite_data(
                         Some(Stacker::<{ CategoryCode::N }, _>::new(pool).val(*category as usize))
                     }
                 })
-                .collect::<Vec<_>>();
+                .collect();
 
             LineDataset {
                 label: category.as_str(),
                 data,
                 background_color: category.as_color(),
                 border_color: category.as_color(),
+                fill: true,
+                point_style: PointStyle(None),
                 ..Default::default()
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
+
+    let tooltip_title: Vec<_> = category_invite_labels
+        .iter()
+        .map(|date| format!("{}", date.format("%Y-%m-%d")))
+        .collect();
+
+    let tooltip_label: Vec<_> = categories
+        .iter()
+        .sorted_by_key(|category| **category as usize)
+        .map(|category| {
+            category_invites
+                .iter()
+                .map(|pool| pool.normalize() * 100.0)
+                .map(|pool| format!("{}: {}", category.as_str(), pool[*category]))
+                .collect::<Vec<_>>()
+        })
+        .collect();
 
     ChartData {
         labels,
         datasets,
-        tooltip: Tooltip::default(),
+        tooltip: Tooltip {
+            title: vec![tooltip_title],
+            label: tooltip_label,
+        },
     }
     .serialize(&SERIALIZER)
     .unwrap_throw()

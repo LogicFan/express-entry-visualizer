@@ -18,7 +18,7 @@ import {
     TimeScale,
     ScaleType,
     ChartOptions,
-    TooltipItem,
+TooltipItem,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { Scale } from "chart.js/auto";
@@ -67,9 +67,7 @@ const offFocusChart = function (): ChartJS {
 /*** ====== Chart Data Definition ====== ***/
 let invitationData = await wasm_invite_data();
 let scoreChartData = wasm_invite_score_data(invitationData);
-let sizeChartData_m = wasm_invite_size_data(invitationData, "m");
-let sizeChartData_w = wasm_invite_size_data(invitationData, "w");
-let sizeChartData_d = wasm_invite_size_data(invitationData, "d");
+let sizeChartData = wasm_invite_size_data(invitationData, "m");
 
 /*** ====== Callbacks Definition ====== ***/
 
@@ -112,19 +110,14 @@ const callback_zoom_onZoom = (context: { chart: ChartJS }) => {
     let r = (range.max - range.min) / 1000 / 3600 / 24;
 
     if (r > 2500) {
-        chart.data = sizeChartData_m;
-        chart.options.plugins.tooltip.callbacks.title =
-            callback_tooltip_title_sizeChart_m;
+        sizeChartData = wasm_invite_size_data(invitationData, "m");
     } else if (r > 583) {
-        chart.data = sizeChartData_w;
-        chart.options.plugins.tooltip.callbacks.title =
-            callback_tooltip_title_sizeChart_w;
+        sizeChartData = wasm_invite_size_data(invitationData, "w");
     } else {
-        chart.data = sizeChartData_d;
-        chart.options.plugins.tooltip.callbacks.title =
-            callback_tooltip_title_sizeChart_d;
+        sizeChartData = wasm_invite_size_data(invitationData, "d");
     }
 
+    chart.data = sizeChartData;
     chart.update("none");
 };
 
@@ -187,20 +180,10 @@ let scoreChartConfig = {
     },
 } as ChartOptions<"line">;
 
-const callback_tooltip_title_sizeChart_m = function (
+const callback_tooltip_title_sizeChart = function (
     items: TooltipItem<"bar">[]
 ) {
-    return items.map((x) => sizeChartData_m.tooltip.title[0][x.dataIndex]);
-};
-const callback_tooltip_title_sizeChart_w = function (
-    items: TooltipItem<"bar">[]
-) {
-    return items.map((x) => sizeChartData_w.tooltip.title[0][x.dataIndex]);
-};
-const callback_tooltip_title_sizeChart_d = function (
-    items: TooltipItem<"bar">[]
-) {
-    return items.map((x) => sizeChartData_d.tooltip.title[0][x.dataIndex]);
+    return items.map((x) => sizeChartData.tooltip.title[0][x.dataIndex]);
 };
 let sizeChartConfig = {
     maintainAspectRatio: false,
@@ -244,7 +227,7 @@ let sizeChartConfig = {
         },
         tooltip: {
             callbacks: {
-                title: callback_tooltip_title_sizeChart_m,
+                title: callback_tooltip_title_sizeChart,
             },
         },
     },
@@ -274,7 +257,7 @@ let sizeChartConfig = {
                 @mouseover="onFocusChartRef = sizeChartRef"
                 @mouseleave="onFocusChartRef = null"
                 :options="sizeChartConfig"
-                :data="sizeChartData_m"
+                :data="sizeChartData"
                 :style="{
                     height: '30vh',
                     width: '100%',

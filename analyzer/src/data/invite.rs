@@ -19,12 +19,18 @@ impl std::fmt::Display for InviteId {
 }
 
 impl InviteId {
-    fn parse(x: &str) -> Self {
+    pub fn parse(x: &str) -> Self {
         match x {
             "91a" => Self(91, 0),
             "91b" => Self(91, 1),
             _ => Self(parse_i32(x), 0),
         }
+    }
+}
+
+impl From<InviteId> for i32 {
+    fn from(value: InviteId) -> Self {
+        value.0
     }
 }
 

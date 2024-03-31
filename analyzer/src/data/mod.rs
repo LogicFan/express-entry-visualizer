@@ -11,7 +11,7 @@ use std::cmp::Ordering;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 pub use category::{Category, CategoryCode};
-pub use invite::Invite;
+pub use invite::{Invite, InviteId};
 pub use pathway::Pathway;
 pub use pool::Pool;
 

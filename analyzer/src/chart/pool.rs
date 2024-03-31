@@ -107,12 +107,10 @@ pub fn wasm_pool_rate_data(
         assert!(!rate_labels.is_empty());
         let last_day = *rate_labels.last().unwrap();
 
-        let extra_label1 = last_day + Days::new(1);
-        let extra_label2 = last_day + Days::new(120);
-
+        let extra_label = last_day + Days::new(120);
         rate_labels
             .iter()
-            .chain((&[extra_label1, extra_label2]).into_iter())
+            .chain([&extra_label])
             .map(|date| date.to_timestamp() as f64)
             .collect()
     };
@@ -120,7 +118,7 @@ pub fn wasm_pool_rate_data(
         let data: Vec<_> = rate_data
             .iter()
             .map(|rate| Some(Stacker::<{ Pool::N }, _>::new(*rate).value(i)))
-            .chain(iter::repeat(None).take(2))
+            .chain([None])
             .collect();
 
         LineDataset {
@@ -135,13 +133,13 @@ pub fn wasm_pool_rate_data(
 
     let predict = (0..Pool::N).into_iter().rev().map(|i| {
         let data: Vec<_> = iter::repeat(None)
-            .take(rate_data.len())
-            .chain(
-                iter::repeat(Some(
-                    Stacker::<{ Pool::N }, _>::new(projected_rate).value(i),
-                ))
-                .take(2),
-            )
+            .take(rate_data.len() - 1)
+            .chain([Some(
+                Stacker::<{ Pool::N }, _>::new(*rate_data.last().unwrap()).value(i),
+            )])
+            .chain([Some(
+                Stacker::<{ Pool::N }, _>::new(projected_rate).value(i),
+            )])
             .collect();
 
         LineDataset {

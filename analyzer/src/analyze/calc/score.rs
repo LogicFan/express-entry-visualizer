@@ -157,7 +157,7 @@ impl ScorePool {
         pool
     }
 
-    pub fn non_pnp(mut self) -> Self {
+    pub fn non_pnp(self) -> Self {
         self - self.pnp()
     }
 

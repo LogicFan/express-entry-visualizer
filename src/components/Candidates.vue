@@ -111,6 +111,7 @@ let countChartConfig = {
             },
             pan: { enabled: true, mode: "xy" },
         },
+        legend: { position: "right" },
         tooltip: {
             enabled: false,
         },
@@ -167,6 +168,7 @@ let rateChartConfig = {
             },
         },
         legend: {
+            position: "right",
             labels: {
                 filter: function (item) {
                     return item.text != "none";

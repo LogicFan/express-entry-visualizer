@@ -39,9 +39,9 @@ impl CategoryCode {
     pub fn as_str(&self) -> String {
         match self {
             Self::General => "General".into(),
-            Self::Province => "Province".into(),
-            Self::Inland => "Canadian Experience".into(),
-            Self::Oversea => "Foreign Worker".into(),
+            Self::Province => "PNP".into(),
+            Self::Inland => "CEC".into(),
+            Self::Oversea => "FSW".into(),
             Self::Stem => "STEM".into(),
             Self::Health => "Health".into(),
             Self::French => "French".into(),

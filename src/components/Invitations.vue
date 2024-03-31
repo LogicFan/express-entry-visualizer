@@ -18,7 +18,7 @@ import {
     TimeScale,
     ScaleType,
     ChartOptions,
-TooltipItem,
+    TooltipItem,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { Scale } from "chart.js/auto";
@@ -171,6 +171,7 @@ let scoreChartConfig = {
         },
     },
     plugins: {
+        legend: { position: "right" },
         zoom: config_zoom,
         tooltip: {
             callbacks: {
@@ -205,6 +206,7 @@ let sizeChartConfig = {
         },
     },
     plugins: {
+        legend: { position: "right" },
         zoom: {
             zoom: {
                 wheel: {

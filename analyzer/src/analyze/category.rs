@@ -1,5 +1,5 @@
 use super::calc::{CategoryPool, ScorePool};
-use crate::{data::{CategoryCode, Invite, Pool}, utils::console_log};
+use crate::data::{CategoryCode, Invite, Pool};
 use chrono::{Days, NaiveDate};
 use std::collections::{HashMap, HashSet};
 
@@ -68,13 +68,11 @@ impl CategoryAnalyzer {
         // otherwise, put in their respected category
         let mut i = i_0;
         while i < i_n {
-            console_log!("i: {}", i);
             let mut i_next = i_n;
 
             // calculate the pool-based increase
             while let Some(pool) = pools.last() {
                 if pool.date <= i {
-                    console_log!("source_pool: {:?}", pool);
                     pool_to_invite = ScorePool::from(*pool).into();
                     pools.pop();
                 } else {
@@ -92,7 +90,6 @@ impl CategoryAnalyzer {
                 }
 
                 let invite_as_pool = if let Some(pool) = pool_to_invite {
-                    console_log!("pool_to_invite: {:?}", pool);
                     let invite_as_pool = pool.invite(invite);
                     pool_to_invite = Some(pool - invite_as_pool); // remove already invited candidates from the pool to avoid duplicate counts.
                     Some(invite_as_pool)
@@ -102,7 +99,6 @@ impl CategoryAnalyzer {
 
                 if invite.category.code == CategoryCode::General {
                     if let Some(invite_as_pool) = invite_as_pool {
-                        console_log!("invite_as_pool: {:?}", invite_as_pool);
                         value[CategoryCode::Province] += invite_as_pool.pnp().total();
                         value[CategoryCode::General] += invite_as_pool.non_pnp().total();
                         categories.insert(CategoryCode::Province);
@@ -115,8 +111,6 @@ impl CategoryAnalyzer {
                     value[invite.category.code] += invite.size;
                     categories.insert(invite.category.code);
                 }
-
-                console_log!("invite: {}, value: {:?}", invite.id, value);
 
                 invites.pop();
             }

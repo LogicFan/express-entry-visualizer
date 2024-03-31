@@ -38,11 +38,11 @@ mod utils {
 
         pub fn rev(&self, i: usize) -> f64 {
             (i..N).map(|k| self.data[k]).sum()
-        } 
+        }
 
         pub fn val(&self, i: usize) -> f64 {
             (0..=i).map(|k| self.data[k]).sum()
-        } 
+        }
     }
 }
 
@@ -56,10 +56,19 @@ mod dataset {
         pub tooltip: Tooltip,
     }
 
-    #[derive(Serialize, Clone, Debug, Default)]
+    #[derive(Serialize, Clone, Debug)]
     pub struct Tooltip {
-        pub title: Option<Vec<String>>,
-        pub label: Option<Vec<String>>,
+        pub title: Vec<Vec<String>>,
+        pub label: Vec<Vec<String>>,
+    }
+
+    impl Default for Tooltip {
+        fn default() -> Self {
+            Self {
+                title: Vec::new(),
+                label: Vec::new(),
+            }
+        }
     }
 
     #[derive(Serialize, Clone, Debug)]

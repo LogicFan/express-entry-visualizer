@@ -153,7 +153,7 @@ let config_zoom = {
 const callback_tooltip_title_scoreChart = function (
     items: TooltipItem<"line">[]
 ) {
-    return items.map((x) => scoreChartData.tooltip.title[x.dataIndex]);
+    return items.map((x) => scoreChartData.tooltip.title[0][x.dataIndex]);
 };
 let scoreChartConfig = {
     maintainAspectRatio: false,
@@ -190,17 +190,17 @@ let scoreChartConfig = {
 const callback_tooltip_title_sizeChart_m = function (
     items: TooltipItem<"bar">[]
 ) {
-    return items.map((x) => sizeChartData_m.tooltip.title[x.dataIndex]);
+    return items.map((x) => sizeChartData_m.tooltip.title[0][x.dataIndex]);
 };
 const callback_tooltip_title_sizeChart_w = function (
     items: TooltipItem<"bar">[]
 ) {
-    return items.map((x) => sizeChartData_w.tooltip.title[x.dataIndex]);
+    return items.map((x) => sizeChartData_w.tooltip.title[0][x.dataIndex]);
 };
 const callback_tooltip_title_sizeChart_d = function (
     items: TooltipItem<"bar">[]
 ) {
-    return items.map((x) => sizeChartData_d.tooltip.title[x.dataIndex]);
+    return items.map((x) => sizeChartData_d.tooltip.title[0][x.dataIndex]);
 };
 let sizeChartConfig = {
     maintainAspectRatio: false,

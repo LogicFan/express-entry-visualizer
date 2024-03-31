@@ -72,10 +72,7 @@ pub fn wasm_category_invite_data(
     ChartData {
         labels,
         datasets,
-        tooltip: Tooltip {
-            title: None,
-            label: None,
-        },
+        tooltip: Tooltip::default(),
     }
     .serialize(&SERIALIZER)
     .unwrap_throw()

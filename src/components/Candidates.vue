@@ -123,7 +123,7 @@ const callback_tooltip_title_rateChart = function (
     return items.map((_) => "Predicted Increase Rate");
 };
 const callback_tooltip_label_rateChart = function (item: TooltipItem<"line">) {;
-    return rateChartData.tooltip.label[item.datasetIndex - poolN];
+    return rateChartData.tooltip.label[item.datasetIndex][0];
 };
 
 let rateChartConfig = {

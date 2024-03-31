@@ -45,8 +45,8 @@ pub fn wasm_invite_score_data(invite_data: *const Vec<Invite>) -> JsValue {
         labels,
         datasets,
         tooltip: Tooltip {
-            title: Some(tooltip_title),
-            label: None,
+            title: vec![tooltip_title],
+            label: Vec::new(),
         },
     }
     .serialize(&SERIALIZER)
@@ -150,8 +150,8 @@ pub fn wasm_invite_size_data(invite_data: *const Vec<Invite>, mode: String) -> J
         labels,
         datasets,
         tooltip: Tooltip {
-            title: Some(tooltip_title),
-            label: None,
+            title: vec![tooltip_title],
+            label: Vec::new(),
         },
     }
     .serialize(&SERIALIZER)

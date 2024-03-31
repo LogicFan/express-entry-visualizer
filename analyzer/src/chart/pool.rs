@@ -47,10 +47,7 @@ pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
     ChartData {
         labels,
         datasets,
-        tooltip: Tooltip {
-            title: None,
-            label: None,
-        },
+        tooltip: Tooltip::default(),
     }
     .serialize(&SERIALIZER)
     .unwrap_throw()
@@ -137,9 +134,7 @@ pub fn wasm_pool_rate_data(
             .chain([Some(
                 Stacker::<{ Pool::N }, _>::new(*rate_data.last().unwrap()).rev(i),
             )])
-            .chain([Some(
-                Stacker::<{ Pool::N }, _>::new(projected_rate).rev(i),
-            )])
+            .chain([Some(Stacker::<{ Pool::N }, _>::new(projected_rate).rev(i))])
             .collect();
 
         LineDataset {
@@ -153,19 +148,17 @@ pub fn wasm_pool_rate_data(
         }
     });
 
-    let datasets: Vec<_> = actual.chain(predict).collect();
+    let datasets: Vec<_> = predict.chain(actual).collect();
 
     ChartData {
         labels,
         datasets,
         tooltip: Tooltip {
-            title: None,
-            label: Some(
-                (0..Pool::N)
-                    .rev()
-                    .map(|i| format!("{}: {:.3}", Pool::as_str(i), projected_rate[i]))
-                    .collect(),
-            ),
+            title: Vec::new(),
+            label: (0..Pool::N)
+                .rev()
+                .map(|i| vec![format!("{}: {:.3}", Pool::as_str(i), projected_rate[i])])
+                .collect(),
         },
     }
     .serialize(&SERIALIZER)

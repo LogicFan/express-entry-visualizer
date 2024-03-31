@@ -44,6 +44,10 @@ impl RateAccumulator {
         self._rate
     }
 
+    fn next_expiry(&self) -> Option<NaiveDate> {
+        self._heap.peek().map(|modifier| modifier.expiry)
+    }
+
     fn insert(&mut self, modifier: RateModifier) {
         self._rate = self._rate + modifier.value;
         self._heap.push(modifier)
@@ -74,10 +78,10 @@ impl RateAnalyzer {
             return (Vec::new(), Vec::new());
         }
 
-        let date_0 = pool_data.first().unwrap().date;
-        let date_n = pool_data.last().unwrap().date + Days::new(1);
+        let i_0 = pool_data.first().unwrap().date;
+        let i_n = pool_data.last().unwrap().date + Days::new(1);
 
-        let capacity = (date_n - date_0).num_days() as usize;
+        let capacity = (i_n - i_0).num_days() as usize;
         let mut dates = Vec::with_capacity(capacity);
         let mut rates = Vec::with_capacity(capacity);
 
@@ -85,66 +89,97 @@ impl RateAnalyzer {
         let mut invites = invite_data
             .iter()
             .copied()
-            .filter(|invite| invite.date >= date_0)
+            .filter(|invite| invite.date >= i_0)
             .collect::<Vec<_>>();
 
         pools.reverse();
         invites.reverse();
 
         let mut rate_acc = RateAccumulator::new();
-        let mut invite_pool = calc::ScorePool::zero(); // based on how date_0 is defined, this value will be immediately re-assigned.
+        let mut pool_invite = calc::ScorePool::zero(); // based on
+                                                       // how date_0 is defined, this value will be immediately re-assigned.
 
-        let mut date = date_0;
-        while date != date_n {
-            rate_acc.update(date);
+        // there are two potential increase from the raw data
+        // 1. pool-based increase: the number difference directly computed by
+        // the pool data
+        // 2. invite-based increase: after a person get his invitation, he will
+        // be removed from the pool, so there must be another person to enter
+        // the pool to keep the number equal.
+        let mut i = i_0;
+        while i != i_n {
+            let mut i_next = i_n;
+            rate_acc.update(i);
 
+            // calculate the pool-based increase
             match pools.last().copied() {
                 None => (),
-                Some(current_pool) => {
-                    if current_pool.date == date {
-                        invite_pool = current_pool.into();
+                Some(pool_current) => {
+                    assert!(pool_current.date >= i);
+                    if pool_current.date == i {
+                        pool_invite = pool_current.into(); // recorded for the following invite-based increase computation
                         pools.pop();
                         match pools.last().copied() {
                             None => (),
-                            Some(next_pool) => {
-                                assert!(next_pool.date > date);
-                                let expiry = next_pool.date;
+                            Some(pool_next) => {
+                                assert!(pool_next.date > pool_current.date);
+                                let expiry = pool_next.date;
 
-                                // based on how pool are constructed, next_pool.date > current_pool.date
-                                let days = (next_pool.date - date).num_days() as f64;
-                                let pool0: calc::ScorePool = invite_pool;
-                                let pool1: calc::ScorePool = next_pool.into();
+                                let days = (pool_next.date - i).num_days() as f64;
+                                let pool0: calc::ScorePool = pool_current.into();
+                                let pool1: calc::ScorePool = pool_next.into();
                                 rate_acc.insert(RateModifier {
                                     value: (pool1 - pool0) / days,
                                     expiry,
                                 });
+
+                                // potential next i: next pool data date
+                                i_next = std::cmp::min(i_next, pool_next.date);
                             }
                         }
+                    } else {
+                        // potential next i: next pool data date
+                        i_next = std::cmp::min(i_next, pool_current.date);
                     }
                 }
             }
 
+            // calculate the invite-based increase
             while let Some(invite) = invites.last() {
-                assert!(invite.date >= date);
-                if invite.date != date {
+                assert!(invite.date >= i);
+                if invite.date != i {
+                    // potential next i: next invite data date
+                    i_next = std::cmp::min(i_next, invite.date);
                     break;
                 }
 
-                let invited = invite_pool.invite(invite);
+                let invited = pool_invite.invite(invite);
                 rate_acc.insert(RateModifier {
                     value: invited / Self::SUBMIT_DAYS as f64,
-                    expiry: date + Days::new(Self::SUBMIT_DAYS as u64),
+                    expiry: i + Days::new(Self::SUBMIT_DAYS as u64),
                 });
-                invite_pool = invite_pool - invited; // remove already invited candidates to avoid duplicate counts.
+                pool_invite = pool_invite - invited; // remove already invited
+                                                     // candidates from the pool to avoid duplicate counts.
+
                 invites.pop();
             }
 
-            if date > date_0 + Days::new(Self::SUBMIT_DAYS as u64) {
+            match rate_acc.next_expiry() {
+                None => (),
+                Some(expiry_date) => {
+                    // potential next i: next rate accumulator expiry date
+                    i_next = std::cmp::min(i_next, expiry_date);
+                }
+            }
+
+            if i > i_0 + Days::new(Self::SUBMIT_DAYS as u64) {
                 // ignore first 60 days since they are under estimated.
-                dates.push(date);
+
+                let interval = (i_next - i).num_days();
+                dates.push(i + Days::new(((interval + 1) / 2) as u64)); // use the mid-point
                 rates.push(rate_acc.rate());
             }
-            date = date + Days::new(1);
+
+            i = i_next;
         }
 
         (dates, rates)

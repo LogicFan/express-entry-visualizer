@@ -1,6 +1,6 @@
 use super::dataset::PointStyle;
 use crate::analyze::rate::RateAnalyzer;
-use crate::analyze::smooth::ExponentialSmoothing;
+use crate::analyze::smooth::Smoother;
 use crate::chart::dataset::{ChartData, LineDataset, Tooltip};
 use crate::chart::utils::{ToTimestamp, SERIALIZER};
 use crate::data::{Invite, Pool};
@@ -122,7 +122,7 @@ pub fn wasm_pool_rate_data(
 
     let (rate_labels, mut rate_data) = RateAnalyzer::pool_increase_rate(pool_data, invite_data);
     let projected_rate = RateAnalyzer::projected_rate(&rate_data);
-    ExponentialSmoothing::smooth(&mut rate_data, 0.03278688524);
+    Smoother::exponential(&rate_labels, &mut rate_data, 0.03278688524);
 
     let labels = {
         assert!(!rate_labels.is_empty());
@@ -133,7 +133,6 @@ pub fn wasm_pool_rate_data(
 
         rate_labels
             .iter()
-            .step_by(7)
             .chain((&[extra_label1, extra_label2]).into_iter())
             .map(|date| date.to_timestamp() as f64)
             .collect::<Vec<_>>()
@@ -141,7 +140,6 @@ pub fn wasm_pool_rate_data(
     let actual = (0..Pool::N).into_iter().rev().map(|i| {
         let data = rate_data
             .iter()
-            .step_by(7)
             .map(|rate| Some(PoolAcc::new(*rate).sum(i)))
             .chain(iter::repeat(None).take(2))
             .collect::<Vec<_>>();
@@ -159,7 +157,6 @@ pub fn wasm_pool_rate_data(
     let predict = (0..Pool::N).into_iter().rev().map(|i| {
         let data = iter::repeat(None)
             .take(rate_data.len())
-            .step_by(7)
             .chain(iter::repeat(Some(PoolAcc::new(projected_rate).sum(i))).take(2))
             .collect::<Vec<_>>();
 

@@ -7,16 +7,16 @@ use serde::Serialize;
 use wasm_bindgen::{prelude::*, throw_str};
 
 #[wasm_bindgen]
-pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
-    let source = unsafe { invitation_data.as_ref().unwrap_throw() };
-    let labels = source
+pub fn wasm_invite_score_data(invite_data: *const Vec<Invite>) -> JsValue {
+    let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
+    let labels: Vec<_> = invite_data
         .iter()
         .map(|invitation| invitation.date.to_timestamp() as f64)
-        .collect::<Vec<_>>();
-    let datasets = CategoryCode::values()
+        .collect();
+    let datasets: Vec<_> = CategoryCode::values()
         .iter()
         .map(|category| {
-            let data = source
+            let data: Vec<_> = invite_data
                 .iter()
                 .map(|invitation| {
                     if invitation.category.code == *category {
@@ -25,7 +25,7 @@ pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
                         None
                     }
                 })
-                .collect::<Vec<_>>();
+                .collect();
 
             LineDataset {
                 label: category.as_str(),
@@ -35,11 +35,11 @@ pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
                 ..Default::default()
             }
         })
-        .collect::<Vec<_>>();
-    let tooltip_title = source
+        .collect();
+    let tooltip_title: Vec<_> = invite_data
         .iter()
         .map(|invitation| format!("{} ({})", invitation.date.format("%Y-%m-%d"), invitation.id))
-        .collect::<Vec<_>>();
+        .collect();
 
     ChartData {
         labels,
@@ -54,8 +54,8 @@ pub fn wasm_invite_score_data(invitation_data: *const Vec<Invite>) -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) -> JsValue {
-    let source = unsafe { invitation_data.as_ref().unwrap_throw() };
+pub fn wasm_invite_size_data(invite_data: *const Vec<Invite>, mode: String) -> JsValue {
+    let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
     fn per_day(date: NaiveDate) -> NaiveDate {
         date
     }
@@ -76,16 +76,16 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
         throw_str(format!("invalid mode {}", mode).as_str())
     };
 
-    let labels = source
+    let labels: Vec<_> = invite_data
         .iter()
         .group_by(|invitation| fn_bar_date(invitation.date))
         .into_iter()
         .map(|(bar_date, _)| bar_date.to_timestamp() as f64)
-        .collect::<Vec<_>>();
-    let datasets = CategoryCode::values()
+        .collect();
+    let datasets: Vec<_> = CategoryCode::values()
         .iter()
         .map(|category| {
-            let data = source
+            let data: Vec<_> = invite_data
                 .iter()
                 .group_by(|invitation| fn_bar_date(invitation.date))
                 .into_iter()
@@ -104,7 +104,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
                             .unwrap_or(0_f64),
                     )
                 })
-                .collect::<Vec<_>>();
+                .collect();
 
             BarDataset {
                 label: category.as_str(),
@@ -114,9 +114,9 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
                 stack: "0".into(),
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let tooltip_title = source
+    let tooltip_title: Vec<_> = invite_data
         .iter()
         .group_by(|invitation| fn_bar_date(invitation.date))
         .into_iter()
@@ -144,7 +144,7 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 
             format!("{}({})", date, id)
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     ChartData {
         labels,
@@ -159,9 +159,9 @@ pub fn wasm_invite_size_data(invitation_data: *const Vec<Invite>, mode: String) 
 }
 
 #[wasm_bindgen]
-pub fn wasm_invite_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
-    let source = unsafe { invitation_data.as_ref().unwrap_throw() };
-    source
+pub fn wasm_invite_x_min(invite_data: *const Vec<Invite>) -> JsValue {
+    let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
+    invite_data
         .first()
         .map(|invitation| (invitation.date - Months::new(1)).to_timestamp() as f64)
         .unwrap_or(0.0)
@@ -170,9 +170,9 @@ pub fn wasm_invite_x_min(invitation_data: *const Vec<Invite>) -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn wasm_invite_x_max(invitation_data: *const Vec<Invite>) -> JsValue {
-    let source = unsafe { invitation_data.as_ref().unwrap_throw() };
-    source
+pub fn wasm_invite_x_max(invite_data: *const Vec<Invite>) -> JsValue {
+    let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
+    invite_data
         .last()
         .map(|invitation| (invitation.date + Months::new(1)).to_timestamp() as f64)
         .unwrap_or(0.0)

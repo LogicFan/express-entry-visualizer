@@ -3,6 +3,8 @@ pub mod invite;
 pub mod pool;
 
 mod utils {
+    use std::{fmt::Debug, ops::Index};
+
     use chrono::NaiveDate;
     use serde_wasm_bindgen::Serializer;
 
@@ -17,6 +19,27 @@ mod utils {
     }
 
     pub static SERIALIZER: Serializer = Serializer::new().serialize_missing_as_null(true);
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct Stacker<const N: usize, T>
+    where
+        T: Index<usize, Output = f64> + Debug + Clone + Copy + PartialEq,
+    {
+        data: T,
+    }
+
+    impl<const N: usize, T> Stacker<N, T>
+    where
+        T: Index<usize, Output = f64> + Debug + Clone + Copy + PartialEq,
+    {
+        pub fn new(data: T) -> Self {
+            Self { data }
+        }
+
+        pub fn value(&self, i: usize) -> f64 {
+            (i..N).map(|k| self.data[k]).sum()
+        } 
+    }
 }
 
 mod dataset {

@@ -2,13 +2,13 @@ use std::{cmp::Ordering, collections::BinaryHeap};
 
 use chrono::{Days, NaiveDate};
 
-use super::calc;
-use crate::data;
+use super::calc::ScorePool;
+use crate::data::{Invite, Pool};
 
 #[derive(Debug, Clone, Copy)]
 struct RateModifier {
     expiry: NaiveDate,
-    value: calc::ScorePool,
+    value: ScorePool,
 }
 impl PartialEq for RateModifier {
     fn eq(&self, other: &Self) -> bool {
@@ -29,18 +29,18 @@ impl Ord for RateModifier {
 
 struct RateAccumulator {
     _heap: BinaryHeap<RateModifier>,
-    _rate: calc::ScorePool,
+    _rate: ScorePool,
 }
 
 impl RateAccumulator {
     fn new() -> Self {
         Self {
             _heap: BinaryHeap::new(),
-            _rate: calc::ScorePool::zero(),
+            _rate: ScorePool::zero(),
         }
     }
 
-    fn rate(&self) -> calc::ScorePool {
+    fn rate(&self) -> ScorePool {
         self._rate
     }
 
@@ -71,9 +71,9 @@ impl RateAnalyzer {
     pub const SUBMIT_DAYS: usize = 15;
 
     pub fn pool_increase_rate(
-        pool_data: &Vec<data::Pool>,
-        invite_data: &Vec<data::Invite>,
-    ) -> (Vec<NaiveDate>, Vec<calc::ScorePool>) {
+        pool_data: &[Pool],
+        invite_data: &[Invite],
+    ) -> (Vec<NaiveDate>, Vec<ScorePool>) {
         if pool_data.len() == 0 {
             return (Vec::new(), Vec::new());
         }
@@ -81,23 +81,22 @@ impl RateAnalyzer {
         let i_0 = pool_data.first().unwrap().date;
         let i_n = pool_data.last().unwrap().date + Days::new(1);
 
-        let capacity = (i_n - i_0).num_days() as usize;
-        let mut dates = Vec::with_capacity(capacity);
-        let mut rates = Vec::with_capacity(capacity);
+        let (mut labels, mut rates) = {
+            let capacity = (i_n - i_0).num_days() as usize;
+            (Vec::with_capacity(capacity), Vec::with_capacity(capacity))
+        };
 
-        let mut pools = pool_data.clone();
-        let mut invites = invite_data
+        let mut pools: Vec<_> = pool_data.iter().copied().rev().collect();
+        let mut invites: Vec<_> = invite_data
             .iter()
             .copied()
+            .rev()
             .filter(|invite| invite.date >= i_0)
-            .collect::<Vec<_>>();
-
-        pools.reverse();
-        invites.reverse();
+            .collect();
 
         let mut rate_acc = RateAccumulator::new();
-        let mut pool_invite = calc::ScorePool::zero(); // based on
-                                                       // how date_0 is defined, this value will be immediately re-assigned.
+        let mut pool_to_invite = ScorePool::zero(); // based on
+                                                 // how date_0 is defined, this value will be immediately re-assigned.
 
         // there are two potential increase from the raw data
         // 1. pool-based increase: the number difference directly computed by
@@ -106,7 +105,7 @@ impl RateAnalyzer {
         // be removed from the pool, so there must be another person to enter
         // the pool to keep the number equal.
         let mut i = i_0;
-        while i != i_n {
+        while i < i_n {
             let mut i_next = i_n;
             rate_acc.update(i);
 
@@ -116,7 +115,7 @@ impl RateAnalyzer {
                 Some(pool_current) => {
                     assert!(pool_current.date >= i);
                     if pool_current.date == i {
-                        pool_invite = pool_current.into(); // recorded for the following invite-based increase computation
+                        pool_to_invite = pool_current.into(); // recorded for the following invite-based increase computation
                         pools.pop();
                         match pools.last().copied() {
                             None => (),
@@ -125,8 +124,8 @@ impl RateAnalyzer {
                                 let expiry = pool_next.date;
 
                                 let days = (pool_next.date - i).num_days() as f64;
-                                let pool0: calc::ScorePool = pool_current.into();
-                                let pool1: calc::ScorePool = pool_next.into();
+                                let pool0: ScorePool = pool_current.into();
+                                let pool1: ScorePool = pool_next.into();
                                 rate_acc.insert(RateModifier {
                                     value: (pool1 - pool0) / days,
                                     expiry,
@@ -152,13 +151,12 @@ impl RateAnalyzer {
                     break;
                 }
 
-                let invited = pool_invite.invite(invite);
+                let invite_as_pool = pool_to_invite.invite(invite);
                 rate_acc.insert(RateModifier {
-                    value: invited / Self::SUBMIT_DAYS as f64,
+                    value: invite_as_pool / Self::SUBMIT_DAYS as f64,
                     expiry: i + Days::new(Self::SUBMIT_DAYS as u64),
                 });
-                pool_invite = pool_invite - invited; // remove already invited
-                                                     // candidates from the pool to avoid duplicate counts.
+                pool_to_invite = pool_to_invite - invite_as_pool; // remove already invited candidates from the pool to avoid duplicate counts.
 
                 invites.pop();
             }
@@ -175,17 +173,17 @@ impl RateAnalyzer {
                 // ignore first 60 days since they are under estimated.
 
                 let interval = (i_next - i).num_days();
-                dates.push(i + Days::new(((interval + 1) / 2) as u64)); // use the mid-point
+                labels.push(i + Days::new(((interval + 1) / 2) as u64)); // use the mid-point
                 rates.push(rate_acc.rate());
             }
 
             i = i_next;
         }
 
-        (dates, rates)
+        (labels, rates)
     }
 
-    pub fn projected_rate(rate_data: &Vec<calc::ScorePool>) -> calc::ScorePool {
+    pub fn projected_rate(rate_data: &Vec<ScorePool>) -> ScorePool {
         const PAST_DAYS: usize = 181;
         rate_data
             .iter()
@@ -193,7 +191,7 @@ impl RateAnalyzer {
             .rev()
             .take(PAST_DAYS)
             .reduce(|x, y| x + y)
-            .unwrap_or(calc::ScorePool::zero())
+            .unwrap_or(ScorePool::zero())
             / PAST_DAYS as f64
     }
 }

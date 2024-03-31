@@ -1,4 +1,5 @@
 use super::dataset::PointStyle;
+use super::utils::Stacker;
 use crate::analyze::rate::RateAnalyzer;
 use crate::analyze::smooth::Smoother;
 use crate::chart::dataset::{ChartData, LineDataset, Tooltip};
@@ -7,30 +8,8 @@ use crate::data::{Invite, Pool};
 use chrono::Days;
 use serde::Serialize;
 use std::iter;
-use std::ops::{Index, Mul};
+use std::ops::Mul;
 use wasm_bindgen::prelude::*;
-
-struct PoolAcc<T>
-where
-    T: Index<usize, Output = f64>,
-{
-    data: T,
-}
-
-impl<T> PoolAcc<T>
-where
-    T: Index<usize, Output = f64>,
-{
-    const N: usize = Pool::N;
-
-    pub fn new(data: T) -> Self {
-        Self { data }
-    }
-
-    pub fn sum(&self, i: usize) -> f64 {
-        (i..Self::N).map(|k| self.data[k]).sum()
-    }
-}
 
 #[wasm_bindgen]
 pub fn wasm_pool_n() -> JsValue {
@@ -40,18 +19,18 @@ pub fn wasm_pool_n() -> JsValue {
 #[wasm_bindgen]
 pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
     let pool_data = unsafe { pool_data.as_ref().unwrap_throw() };
-    let labels = pool_data
+    let labels: Vec<_> = pool_data
         .iter()
         .map(|pool| pool.date.to_timestamp() as f64)
-        .collect::<Vec<_>>();
-    let datasets = (0..Pool::N)
+        .collect();
+    let datasets: Vec<_> = (0..Pool::N)
         .rev()
         .into_iter()
         .map(|i| {
-            let data = pool_data
+            let data: Vec<_> = pool_data
                 .iter()
-                .map(|pool| Some(PoolAcc::new(*pool).sum(i)))
-                .collect::<Vec<_>>();
+                .map(|pool| Some(Stacker::<{ Pool::N }, _>::new(*pool).value(i)))
+                .collect();
 
             LineDataset {
                 label: format!("{} - {}", Pool::min_score(i), Pool::max_score(i)),
@@ -63,7 +42,7 @@ pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
                 ..Default::default()
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     ChartData {
         labels,
@@ -124,10 +103,10 @@ pub fn wasm_pool_rate_data(
     let projected_rate = RateAnalyzer::projected_rate(&rate_data);
     Smoother::exponential(&rate_labels, &mut rate_data, 0.03278688524);
 
-    let labels = {
+    let labels: Vec<_> = {
         assert!(!rate_labels.is_empty());
         let last_day = *rate_labels.last().unwrap();
-        
+
         let extra_label1 = last_day + Days::new(1);
         let extra_label2 = last_day + Days::new(120);
 
@@ -135,14 +114,14 @@ pub fn wasm_pool_rate_data(
             .iter()
             .chain((&[extra_label1, extra_label2]).into_iter())
             .map(|date| date.to_timestamp() as f64)
-            .collect::<Vec<_>>()
+            .collect()
     };
     let actual = (0..Pool::N).into_iter().rev().map(|i| {
-        let data = rate_data
+        let data: Vec<_> = rate_data
             .iter()
-            .map(|rate| Some(PoolAcc::new(*rate).sum(i)))
+            .map(|rate| Some(Stacker::<{ Pool::N }, _>::new(*rate).value(i)))
             .chain(iter::repeat(None).take(2))
-            .collect::<Vec<_>>();
+            .collect();
 
         LineDataset {
             label: format!("> {}", Pool::min_score(i)),
@@ -155,10 +134,15 @@ pub fn wasm_pool_rate_data(
     });
 
     let predict = (0..Pool::N).into_iter().rev().map(|i| {
-        let data = iter::repeat(None)
+        let data: Vec<_> = iter::repeat(None)
             .take(rate_data.len())
-            .chain(iter::repeat(Some(PoolAcc::new(projected_rate).sum(i))).take(2))
-            .collect::<Vec<_>>();
+            .chain(
+                iter::repeat(Some(
+                    Stacker::<{ Pool::N }, _>::new(projected_rate).value(i),
+                ))
+                .take(2),
+            )
+            .collect();
 
         LineDataset {
             label: "none".into(),
@@ -171,7 +155,7 @@ pub fn wasm_pool_rate_data(
         }
     });
 
-    let datasets = actual.chain(predict).collect::<Vec<_>>();
+    let datasets: Vec<_> = actual.chain(predict).collect();
 
     ChartData {
         labels,

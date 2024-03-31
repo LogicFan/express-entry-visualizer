@@ -18,7 +18,7 @@ impl SmoothLabel for NaiveDate {
 impl SmoothValue for ScorePool {}
 
 impl Smoother {
-    pub fn exponential<L, D>(labels: &Vec<L>, values: &mut Vec<D>, alpha: f64)
+    pub fn exponential<L, D>(labels: &[L], values: &mut [D], alpha: f64)
     where
         L: SmoothLabel,
         D: SmoothValue,

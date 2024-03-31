@@ -151,9 +151,14 @@ impl ScorePool {
 }
 
 impl ScorePool {
+    pub fn pnp(self) -> Self {
+        let mut pool = Self::default();
+        pool[14] = self[14]; // 14-th bucket is 601 to 1200
+        pool
+    }
+
     pub fn non_pnp(mut self) -> Self {
-        self[14] = 0_f64; // 14-th bucket is 601 to 1200
-        self
+        self - self.pnp()
     }
 
     pub fn invite(mut self, _invite: &data::Invite) -> Self {

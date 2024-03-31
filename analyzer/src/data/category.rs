@@ -1,6 +1,6 @@
 use regex::Regex;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum CategoryCode {
     General = 0,
@@ -21,8 +21,8 @@ pub enum CategoryCode {
 impl CategoryCode {
     pub const N: usize = 10;
 
-    pub fn values() -> [CategoryCode; Self::N] {
-        return [
+    pub fn values() -> &'static [CategoryCode] {
+        return &[
             Self::General,
             Self::Province,
             Self::Inland,

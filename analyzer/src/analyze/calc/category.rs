@@ -35,11 +35,18 @@ impl IndexMut<CategoryCode> for CategoryPool {
     }
 }
 
+impl Index<usize> for CategoryPool {
+    type Output = f64;
+    fn index(&self, i: usize) -> &Self::Output {
+        &self.0[i]
+    }
+}
+
 impl Add for CategoryPool {
     type Output = Self;
 
     fn add(mut self, rhs: Self) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] + rhs[i];
         }
         self
@@ -50,7 +57,7 @@ impl Sub for CategoryPool {
     type Output = Self;
 
     fn sub(mut self, rhs: Self) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] - rhs[i];
         }
         self
@@ -61,7 +68,7 @@ impl Mul for CategoryPool {
     type Output = Self;
 
     fn mul(mut self, rhs: Self) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] * rhs[i];
         }
         self
@@ -72,7 +79,7 @@ impl Div for CategoryPool {
     type Output = Self;
 
     fn div(mut self, rhs: Self) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] / rhs[i];
         }
         self
@@ -83,7 +90,7 @@ impl Mul<f64> for CategoryPool {
     type Output = Self;
 
     fn mul(mut self, rhs: f64) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] * rhs;
         }
         self
@@ -94,7 +101,7 @@ impl Div<f64> for CategoryPool {
     type Output = Self;
 
     fn div(mut self, rhs: f64) -> Self::Output {
-        for i in CategoryCode::values() {
+        for i in CategoryCode::values().iter().copied() {
             self[i] = self[i] / rhs;
         }
         self

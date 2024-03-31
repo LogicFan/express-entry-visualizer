@@ -36,8 +36,12 @@ mod utils {
             Self { data }
         }
 
-        pub fn value(&self, i: usize) -> f64 {
+        pub fn rev(&self, i: usize) -> f64 {
             (i..N).map(|k| self.data[k]).sum()
+        } 
+
+        pub fn val(&self, i: usize) -> f64 {
+            (0..=i).map(|k| self.data[k]).sum()
         } 
     }
 }

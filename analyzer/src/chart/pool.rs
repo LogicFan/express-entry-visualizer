@@ -29,7 +29,7 @@ pub fn wasm_pool_count_data(pool_data: *const Vec<Pool>) -> JsValue {
         .map(|i| {
             let data: Vec<_> = pool_data
                 .iter()
-                .map(|pool| Some(Stacker::<{ Pool::N }, _>::new(*pool).value(i)))
+                .map(|pool| Some(Stacker::<{ Pool::N }, _>::new(*pool).rev(i)))
                 .collect();
 
             LineDataset {
@@ -117,7 +117,7 @@ pub fn wasm_pool_rate_data(
     let actual = (0..Pool::N).into_iter().rev().map(|i| {
         let data: Vec<_> = rate_data
             .iter()
-            .map(|rate| Some(Stacker::<{ Pool::N }, _>::new(*rate).value(i)))
+            .map(|rate| Some(Stacker::<{ Pool::N }, _>::new(*rate).rev(i)))
             .chain([None])
             .collect();
 
@@ -135,10 +135,10 @@ pub fn wasm_pool_rate_data(
         let data: Vec<_> = iter::repeat(None)
             .take(rate_data.len() - 1)
             .chain([Some(
-                Stacker::<{ Pool::N }, _>::new(*rate_data.last().unwrap()).value(i),
+                Stacker::<{ Pool::N }, _>::new(*rate_data.last().unwrap()).rev(i),
             )])
             .chain([Some(
-                Stacker::<{ Pool::N }, _>::new(projected_rate).value(i),
+                Stacker::<{ Pool::N }, _>::new(projected_rate).rev(i),
             )])
             .collect();
 

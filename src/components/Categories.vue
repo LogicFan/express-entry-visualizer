@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {} from "vue";
 import { NCard, NGrid, NGridItem, NDataTable } from "naive-ui";
-import { Doughnut } from "vue-chartjs";
+import { Doughnut, Line } from "vue-chartjs";
 import {
     Chart as ChartJS,
     Title,
@@ -17,6 +17,18 @@ import {
     ChartOptions,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
+import {
+    Draw,
+    DrawCategory,
+    useCategoryColor,
+} from "../composables/Constant.ts";
+import { useData } from "../composables/DataLoader.ts";
+import { TableColumns } from "naive-ui/es/data-table/src/interface";
+import wasm_init, {
+    wasm_pool_data,
+    wasm_invite_data,
+    wasm_category_invite_data,
+} from "analyzer";
 
 ChartJS.register(
     Title,
@@ -28,14 +40,45 @@ ChartJS.register(
     LogarithmicScale,
     TimeScale
 );
+await wasm_init();
 
-import {
-    Draw,
-    DrawCategory,
-    useCategoryColor,
-} from "../composables/Constant.ts";
-import { useData } from "../composables/DataLoader.ts";
-import { TableColumns } from "naive-ui/es/data-table/src/interface";
+/*** ====== Misc ====== */
+/*** ====== Chart Data Definition ====== ***/
+let poolData = await wasm_pool_data();
+let inviteData = await wasm_invite_data();
+let inviteChartData = wasm_category_invite_data(poolData, inviteData, 0, true);
+
+/*** ====== Callbacks Definition ====== ***/
+let callback_tooltip_label_percentage = function (item: TooltipItem<"line">) {
+    return (item.raw as number).toFixed(2) + "%";
+};
+
+/*** ====== Chart Config Definition ====== ***/
+let percentageScaleConfig = {
+    min: 0,
+    max: 100,
+    callback: function (value) {
+        return value + "%";
+    },
+};
+
+let inviteChartConfig = {
+    maintainAspectRatio: false,
+    scales: {
+        x: {
+            type: "time",
+        },
+        y: percentageScaleConfig,
+    },
+    plugins: {
+        legend: { position: "right" },
+        tooltip: {
+            callbacks: {
+                label: callback_tooltip_label_percentage,
+            },
+        },
+    },
+} as ChartOptions<"line">;
 
 const categories = [
     DrawCategory.STEM,
@@ -48,56 +91,6 @@ const categories = [
 
 const firstCategoryDraw = 252;
 const data = (await useData()).filter((e) => e.id >= firstCategoryDraw);
-
-function calcInvitationSizeChartProps() {
-    const labels = categories.concat([DrawCategory.GENERAL]);
-
-    const dataC = categories.map((c) =>
-        data
-            .filter((e) => e.name == c)
-            .map((e) => e.size)
-            .reduce((a, b) => a + b, 0)
-    );
-    const dataG = data
-        .filter((e) => !categories.includes(e.name))
-        .map((e) => e.size)
-        .reduce((a, b) => a + b, 0);
-
-    const datasets = [
-        {
-            data: dataC.concat([dataG]),
-            backgroundColor: labels.map((e) => useCategoryColor(e)),
-            borderColor: labels.map((e) => useCategoryColor(e)),
-        },
-    ];
-
-    return {
-        data: {
-            labels: labels,
-            datasets: datasets,
-        } as ChartData<"doughnut", number[], string>,
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: "right" },
-                tooltip: {
-                    callbacks: {
-                        label: function (context: TooltipItem<"doughnut">) {
-                            const total = context.dataset.data.reduce(
-                                (a, b) => a + b,
-                                0
-                            );
-                            const percentage =
-                                ((context.raw as number) / total) * 100;
-                            return percentage.toFixed(2) + "%";
-                        },
-                    },
-                },
-            },
-        } as ChartOptions<"doughnut">,
-    };
-}
 
 function calcInvitationCountChartProps() {
     const labels = categories.concat([DrawCategory.GENERAL]);
@@ -205,7 +198,6 @@ function calcInvitationRecencyTableProps() {
     };
 }
 
-let invitationSizeChartProps = calcInvitationSizeChartProps();
 let invitationCountChartProps = calcInvitationCountChartProps();
 let candidateSizeChartProps = calcCandidateSizeChartProps();
 let invitationRecencyTableProps = calcInvitationRecencyTableProps();
@@ -217,10 +209,10 @@ let vh = visualViewport.height;
     <n-grid :x-gap="12" :y-gap="8" :cols="2">
         <n-grid-item>
             <n-card title="Invitation Size By Categories">
-                <Doughnut
-                    ref="invitationSizeChart"
-                    :options="invitationSizeChartProps.options"
-                    :data="invitationSizeChartProps.data"
+                <Line
+                    ref="inviteSizeChart"
+                    :options="inviteChartConfig"
+                    :data="inviteChartData"
                     :style="{
                         height: '30vh',
                         width: '100%',

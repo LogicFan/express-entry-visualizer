@@ -95,8 +95,7 @@ impl RateAnalyzer {
             .collect();
 
         let mut rate_acc = RateAccumulator::new();
-        let mut pool_to_invite = ScorePool::zero(); // based on
-                                                 // how date_0 is defined, this value will be immediately re-assigned.
+        let mut pool_to_invite = ScorePool::zero(); // based on how date_0 is defined, this value will be immediately re-assigned.
 
         // there are two potential increase from the raw data
         // 1. pool-based increase: the number difference directly computed by

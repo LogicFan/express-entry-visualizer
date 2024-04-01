@@ -1,4 +1,4 @@
-use super::dataset::PointStyle;
+use super::dataset::{Dropdown, PointStyle};
 use super::utils::Stacker;
 use crate::analyze::category::CategoryAnalyzer;
 use crate::chart::dataset::{ChartData, LineDataset, Tooltip};
@@ -13,7 +13,15 @@ pub fn wasm_category_years(invite_data: *const Vec<Invite>) -> JsValue {
     let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
     CategoryAnalyzer::of_category_years(invite_data)
         .keys()
-        .filter(|year| **year != 0)
+        .sorted()
+        .map(|year| Dropdown {
+            key: *year as f64,
+            label: if *year == 0 {
+                "all".into()
+            } else {
+                year.to_string()
+            },
+        })
         .collect::<Vec<_>>()
         .serialize(&SERIALIZER)
         .unwrap_throw()
@@ -52,11 +60,7 @@ pub fn wasm_category_invite_data(
                 .iter()
                 .map(|pool| pool.normalize() * 100.0)
                 .map(|pool| {
-                    if pool[*category] == 0.0 {
-                        None
-                    } else {
-                        Some(Stacker::<{ CategoryCode::N }, _>::new(pool).val(*category as usize))
-                    }
+                    Some(Stacker::<{ CategoryCode::N }, _>::new(pool).val(*category as usize))
                 })
                 .collect();
 
@@ -84,7 +88,7 @@ pub fn wasm_category_invite_data(
             category_invites
                 .iter()
                 .map(|pool| pool.normalize() * 100.0)
-                .map(|pool| format!("{}: {}", category.as_str(), pool[*category]))
+                .map(|pool| format!("{}: {:.2}%", category.as_str(), pool[*category]))
                 .collect::<Vec<_>>()
         })
         .collect();

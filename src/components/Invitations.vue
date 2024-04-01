@@ -45,6 +45,7 @@ ChartJS.register(
     zoomPlugin
 );
 await wasm_init();
+let invitationData = await wasm_invite_data();
 
 /*** ====== Misc ====== */
 let scoreChartRef: Ref<typeof Line> = ref();
@@ -65,7 +66,6 @@ const offFocusChart = function (): ChartJS {
 };
 
 /*** ====== Chart Data Definition ====== ***/
-let invitationData = await wasm_invite_data();
 let scoreChartData = wasm_invite_score_data(invitationData);
 let sizeChartData = wasm_invite_size_data(invitationData, "m");
 

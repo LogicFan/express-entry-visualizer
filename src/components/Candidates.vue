@@ -22,7 +22,6 @@ import "chartjs-adapter-date-fns";
 import wasm_init, {
     wasm_pool_data,
     wasm_invite_data,
-    wasm_pool_n,
     wasm_pool_count_x_min,
     wasm_pool_count_x_max,
     wasm_pool_count_y_max,
@@ -47,6 +46,8 @@ ChartJS.register(
 );
 
 await wasm_init();
+let poolData = await wasm_pool_data();
+let inviteData = await wasm_invite_data();
 
 /*** ====== Misc ====== */
 const checkboxStyle = function ({
@@ -73,9 +74,6 @@ const checkboxStyle = function ({
 let isRateChecked = ref(false);
 
 /*** ====== Chart Data Definition ====== ***/
-let poolData = await wasm_pool_data();
-let inviteData = await wasm_invite_data();
-let poolN = wasm_pool_n();
 let countChartData = wasm_pool_count_data(poolData);
 let rateChartData = wasm_pool_rate_data(poolData, inviteData);
 
@@ -160,7 +158,7 @@ let rateChartConfig = {
         },
         tooltip: {
             filter: function (item) {
-                return item.datasetIndex >= poolN;
+                return item.datasetIndex < rateChartData.tooltip.label.length;
             },
             callbacks: {
                 title: callback_tooltip_title_rateChart,

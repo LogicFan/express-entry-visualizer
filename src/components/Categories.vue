@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import {} from "vue";
-import { NCard, NGrid, NGridItem, NDataTable } from "naive-ui";
+import { Ref, ref } from "vue";
+import {
+    NCard,
+    NGrid,
+    NGridItem,
+    NDataTable,
+    NSwitch,
+    NButton,
+    NDropdown,
+    NDivider,
+} from "naive-ui";
 import { Doughnut, Line } from "vue-chartjs";
 import {
     Chart as ChartJS,
     Title,
     Tooltip,
     Legend,
+    Filler,
     ArcElement,
     CategoryScale,
     LinearScale,
@@ -28,12 +38,14 @@ import wasm_init, {
     wasm_pool_data,
     wasm_invite_data,
     wasm_category_invite_data,
+    wasm_category_years,
 } from "analyzer";
 
 ChartJS.register(
     Title,
     Tooltip,
     Legend,
+    Filler,
     ArcElement,
     CategoryScale,
     LinearScale,
@@ -41,29 +53,58 @@ ChartJS.register(
     TimeScale
 );
 await wasm_init();
-
-/*** ====== Misc ====== */
-/*** ====== Chart Data Definition ====== ***/
 let poolData = await wasm_pool_data();
 let inviteData = await wasm_invite_data();
+
+/*** ====== Misc ====== */
+let categoryYears = wasm_category_years(inviteData);
+
+let inviteChartRef: Ref<typeof Line> = ref();
+let inviteChartPNP = ref(true);
+let inviteChartYear = ref({ label: "all", key: 0 });
+function updateInviteChart() {
+    inviteChartData = wasm_category_invite_data(
+        poolData,
+        inviteData,
+        inviteChartYear.value.key,
+        inviteChartPNP.value
+    );
+    let chart: ChartJS = inviteChartRef.value.chart;
+    chart.data = inviteChartData;
+    chart.update("none");
+}
+
+/*** ====== Chart Data Definition ====== ***/
 let inviteChartData = wasm_category_invite_data(poolData, inviteData, 0, true);
 
 /*** ====== Callbacks Definition ====== ***/
-let callback_tooltip_label_percentage = function (item: TooltipItem<"line">) {
-    return (item.raw as number).toFixed(2) + "%";
-};
 
 /*** ====== Chart Config Definition ====== ***/
 let percentageScaleConfig = {
     min: 0,
     max: 100,
-    callback: function (value) {
-        return value + "%";
+    ticks: {
+        callback: function (value) {
+            return value + "%";
+        },
     },
 };
 
+let callback_tooltip_title_inviteChart = function (
+    items: TooltipItem<"line">[]
+) {
+    return items.map((x) => inviteChartData.tooltip.title[0][x.dataIndex]);
+};
+let callback_tooltip_label_inviteChart = function (item: TooltipItem<"line">) {
+    return inviteChartData.tooltip.label[item.datasetIndex][item.dataIndex];
+};
 let inviteChartConfig = {
     maintainAspectRatio: false,
+    interaction: {
+        mode: "nearest",
+        axis: "xy",
+        intersect: false,
+    },
     scales: {
         x: {
             type: "time",
@@ -74,7 +115,8 @@ let inviteChartConfig = {
         legend: { position: "right" },
         tooltip: {
             callbacks: {
-                label: callback_tooltip_label_percentage,
+                title: callback_tooltip_title_inviteChart,
+                label: callback_tooltip_label_inviteChart,
             },
         },
     },
@@ -209,8 +251,35 @@ let vh = visualViewport.height;
     <n-grid :x-gap="12" :y-gap="8" :cols="2">
         <n-grid-item>
             <n-card title="Invitation Size By Categories">
+                <template #header-extra>
+                    <n-dropdown
+                        :options="categoryYears"
+                        @select="
+                            (key: number) => { 
+                                inviteChartYear = { label: (key == 0 ? 'all' : key.toString()), key: key }; 
+                                updateInviteChart();
+                            }
+                        "
+                    >
+                        <n-button>{{ inviteChartYear.label }}</n-button>
+                    </n-dropdown>
+                    <n-divider vertical />
+                    <n-switch
+                        :round="false"
+                        :value="inviteChartPNP"
+                        @update:value="
+                            (value) => {
+                                inviteChartPNP = value;
+                                updateInviteChart();
+                            }
+                        "
+                    >
+                        <template #checked> PNP </template>
+                        <template #unchecked> PNP </template>
+                    </n-switch>
+                </template>
                 <Line
-                    ref="inviteSizeChart"
+                    ref="inviteChartRef"
                     :options="inviteChartConfig"
                     :data="inviteChartData"
                     :style="{

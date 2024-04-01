@@ -157,7 +157,7 @@ pub fn wasm_pool_rate_data(
             title: Vec::new(),
             label: (0..Pool::N)
                 .rev()
-                .map(|i| vec![format!("{}: {:.3}", Pool::as_str(i), projected_rate[i])])
+                .map(|i| vec![format!("{}: {:.3} per day", Pool::as_str(i), projected_rate[i])])
                 .collect(),
         },
     }

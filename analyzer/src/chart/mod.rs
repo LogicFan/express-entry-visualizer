@@ -133,4 +133,10 @@ mod dataset {
         pub border_color: String,
         pub stack: String,
     }
+
+    #[derive(Serialize, Clone, Debug)]
+    pub struct Dropdown {
+        pub label: String,
+        pub key: f64,
+    }
 }

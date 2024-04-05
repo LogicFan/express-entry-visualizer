@@ -38,6 +38,7 @@ import wasm_init, {
     wasm_pool_data,
     wasm_invite_data,
     wasm_category_invite_data,
+    wasm_category_pool_data,
     wasm_category_years,
 } from "analyzer";
 
@@ -73,23 +74,26 @@ function updateInviteChart() {
     chart.data = inviteChartData;
     chart.update("none");
 }
+let poolChartRef: Ref<typeof Line> = ref();
+let poolChartYear = ref({ label: "all", key: 0 });
+function updatePoolChart() {
+    poolChartData = wasm_category_pool_data(
+        poolData,
+        inviteData,
+        poolChartYear.value.key
+    );
+    let chart: ChartJS = poolChartRef.value.chart;
+    chart.data = poolChartData;
+    chart.update("none");
+}
 
 /*** ====== Chart Data Definition ====== ***/
 let inviteChartData = wasm_category_invite_data(poolData, inviteData, 0, true);
+let poolChartData = wasm_category_pool_data(poolData, inviteData, 0);
 
 /*** ====== Callbacks Definition ====== ***/
 
 /*** ====== Chart Config Definition ====== ***/
-let percentageScaleConfig = {
-    min: 0,
-    max: 100,
-    ticks: {
-        callback: function (value) {
-            return value + "%";
-        },
-    },
-};
-
 let callback_tooltip_title_inviteChart = function (
     items: TooltipItem<"line">[]
 ) {
@@ -109,7 +113,15 @@ let inviteChartConfig = {
         x: {
             type: "time",
         },
-        y: percentageScaleConfig,
+        y: {
+            min: 0,
+            max: 100,
+            ticks: {
+                callback: function (value) {
+                    return value + "%";
+                },
+            },
+        },
     },
     plugins: {
         legend: { position: "right" },
@@ -117,6 +129,42 @@ let inviteChartConfig = {
             callbacks: {
                 title: callback_tooltip_title_inviteChart,
                 label: callback_tooltip_label_inviteChart,
+            },
+        },
+    },
+} as ChartOptions<"line">;
+let callback_tooltip_title_poolChart = function (items: TooltipItem<"line">[]) {
+    return items.map((x) => poolChartData.tooltip.title[0][x.dataIndex]);
+};
+let callback_tooltip_label_poolChart = function (item: TooltipItem<"line">) {
+    return poolChartData.tooltip.label[item.datasetIndex][item.dataIndex];
+};
+let poolChartConfig = {
+    maintainAspectRatio: false,
+    interaction: {
+        mode: "nearest",
+        axis: "xy",
+        intersect: false,
+    },
+    scales: {
+        x: {
+            type: "time",
+        },
+        y: {
+            min: 0,
+            ticks: {
+                callback: function (value) {
+                    return value + "%";
+                },
+            },
+        },
+    },
+    plugins: {
+        legend: { position: "right" },
+        tooltip: {
+            callbacks: {
+                title: callback_tooltip_title_poolChart,
+                label: callback_tooltip_label_poolChart,
             },
         },
     },
@@ -167,55 +215,6 @@ function lastDrawOfCategory(d: Array<Draw>, c: DrawCategory): Draw {
         .sort((a, b) => b.date.getTime() - a.date.getTime())[0];
 }
 
-function calcCandidateSizeChartProps() {
-    const labels = categories.concat([DrawCategory.GENERAL]);
-
-    function estimatePercentage(d: Draw): number {
-        const selected = d.size;
-        const above = d.pool
-            .filter((e) => e.min > d.crs)
-            .reduce((a, b) => a + b.count, 0);
-        const m = d.pool.filter((e) => e.min <= d.crs && d.crs <= e.max)[0];
-        const middle = ((m.max - d.crs) / (m.max - m.min)) * m.count;
-        return selected / (middle + above);
-    }
-
-    const dataC = categories
-        .map((c) => lastDrawOfCategory(data, c))
-        .map((e) => estimatePercentage(e));
-    const dataG = 1 - dataC.reduce((a, b) => a + b, 0);
-
-    const datasets = [
-        {
-            data: dataC.concat([dataG]),
-            backgroundColor: labels.map((e) => useCategoryColor(e)),
-            borderColor: labels.map((e) => useCategoryColor(e)),
-        },
-    ];
-
-    return {
-        data: {
-            labels: labels,
-            datasets: datasets,
-        } as ChartData<"doughnut", number[], string>,
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: "right" },
-                tooltip: {
-                    callbacks: {
-                        label: function (context: TooltipItem<"doughnut">) {
-                            const percentage = (context.raw as number) * 100;
-                            return percentage.toFixed(2) + "%";
-                        },
-                    },
-                },
-            },
-        } as ChartOptions<"doughnut">,
-    };
-}
-
 function calcInvitationRecencyTableProps() {
     const datasets = categories
         .map((c) => lastDrawOfCategory(data, c))
@@ -241,7 +240,6 @@ function calcInvitationRecencyTableProps() {
 }
 
 let invitationCountChartProps = calcInvitationCountChartProps();
-let candidateSizeChartProps = calcCandidateSizeChartProps();
 let invitationRecencyTableProps = calcInvitationRecencyTableProps();
 
 let vh = visualViewport.height;
@@ -250,7 +248,7 @@ let vh = visualViewport.height;
 <template>
     <n-grid :x-gap="12" :y-gap="8" :cols="2">
         <n-grid-item>
-            <n-card title="Invitation Size By Categories">
+            <n-card title="Invitations By Categories">
                 <template #header-extra>
                     <n-dropdown
                         :options="categoryYears"
@@ -303,11 +301,24 @@ let vh = visualViewport.height;
             </n-card>
         </n-grid-item>
         <n-grid-item>
-            <n-card title="Estimated Candidates By Categories">
-                <Doughnut
-                    id="candidateSizeChart"
-                    :options="candidateSizeChartProps.options"
-                    :data="candidateSizeChartProps.data"
+            <n-card title="Candidates By Categories">
+                <template #header-extra>
+                    <n-dropdown
+                        :options="categoryYears"
+                        @select="
+                            (key: number) => { 
+                                poolChartYear = { label: (key == 0 ? 'all' : key.toString()), key: key }; 
+                                updatePoolChart();
+                            }
+                        "
+                    >
+                        <n-button>{{ poolChartYear.label }}</n-button>
+                    </n-dropdown>
+                </template>
+                <Line
+                    ref="poolChartRef"
+                    :options="poolChartConfig"
+                    :data="poolChartData"
                     :style="{
                         height: '30vh',
                         width: '100%',

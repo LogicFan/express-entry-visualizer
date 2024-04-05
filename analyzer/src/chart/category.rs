@@ -87,8 +87,85 @@ pub fn wasm_category_invite_data(
         .map(|category| {
             category_invites
                 .iter()
-                .map(|pool| pool.normalize() * 100.0)
-                .map(|pool| format!("{}: {:.2}%", category.as_str(), pool[*category]))
+                .map(|pool| {
+                    format!(
+                        "{}: {:.2}% ({})",
+                        category.as_str(),
+                        pool.normalize()[*category] * 100.0,
+                        pool[*category] as i64
+                    )
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    ChartData {
+        labels,
+        datasets,
+        tooltip: Tooltip {
+            title: vec![tooltip_title],
+            label: tooltip_label,
+        },
+    }
+    .serialize(&SERIALIZER)
+    .unwrap_throw()
+}
+
+#[wasm_bindgen]
+pub fn wasm_category_pool_data(
+    pool_data: *const Vec<Pool>,
+    invite_data: *const Vec<Invite>,
+    category_year: f64,
+) -> JsValue {
+    let pool_data = unsafe { pool_data.as_ref().unwrap_throw() };
+    let invite_data = unsafe { invite_data.as_ref().unwrap_throw() };
+    let invite_data = CategoryAnalyzer::of_category_years(invite_data)[&(category_year as i32)];
+    let (category_invite_labels, category_invites, categories) =
+        CategoryAnalyzer::percent_per_category(pool_data, invite_data);
+
+    let labels: Vec<_> = category_invite_labels
+        .iter()
+        .map(|date| date.to_timestamp() as f64)
+        .collect();
+
+    let datasets = categories
+        .iter()
+        .sorted_by_key(|category| **category as usize)
+        .map(|category| {
+            let data: Vec<_> = category_invites
+                .iter()
+                .map(|pool| {
+                    if pool[*category] == 0.0 {
+                        None
+                    } else {
+                        Some(pool[*category] * 100.0)
+                    }
+                })
+                .collect();
+
+            LineDataset {
+                label: category.as_str(),
+                data,
+                background_color: category.as_color(),
+                border_color: category.as_color(),
+                point_style: PointStyle(None),
+                ..Default::default()
+            }
+        })
+        .collect();
+
+    let tooltip_title: Vec<_> = category_invite_labels
+        .iter()
+        .map(|date| format!("{}", date.format("%Y-%m-%d")))
+        .collect();
+
+    let tooltip_label: Vec<_> = categories
+        .iter()
+        .sorted_by_key(|category| **category as usize)
+        .map(|category| {
+            category_invites
+                .iter()
+                .map(|pool| format!("{}: {:.2}%", category.as_str(), pool[*category] * 100.0))
                 .collect::<Vec<_>>()
         })
         .collect();

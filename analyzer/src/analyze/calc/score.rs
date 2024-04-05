@@ -178,6 +178,11 @@ impl ScorePool {
 
         self
     }
+
+    pub fn within_score(self, min_score: f64, max_score: f64) -> Self {
+        let multiplier = self.multiplier_within_score(min_score, max_score);
+        self * multiplier
+    }
 }
 
 #[cfg(test)]

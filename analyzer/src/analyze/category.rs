@@ -1,5 +1,5 @@
 use super::calc::{CategoryPool, ScorePool};
-use crate::data::{CategoryCode, Invite, Pool};
+use crate::{data::{CategoryCode, Invite, Pool}, utils::console_log};
 use chrono::{Days, NaiveDate};
 use std::collections::{HashMap, HashSet};
 
@@ -120,6 +120,79 @@ impl CategoryAnalyzer {
 
             i = i_next;
         }
+
+        (labels, values, categories)
+    }
+
+    
+    pub fn percent_per_category(
+        pool_data: &[Pool],
+        invite_data: &[Invite],
+    ) -> (Vec<NaiveDate>, Vec<CategoryPool>, HashSet<CategoryCode>) {
+        if pool_data.len() == 0 || invite_data.len() == 0 {
+            return (Vec::new(), Vec::new(), HashSet::new());
+        }
+
+        let i_0 = invite_data.first().unwrap().date;
+        let i_n = invite_data.last().unwrap().date + Days::new(1);
+
+        let (mut labels, mut values) = {
+            let capacity = invite_data.len();
+            (Vec::with_capacity(capacity), Vec::with_capacity(capacity))
+        };
+        let mut categories = HashSet::new();
+
+        let mut pools: Vec<_> = pool_data.iter().copied().rev().collect();
+        let mut invites: Vec<_> = invite_data.iter().copied().rev().collect();
+
+        let mut pool_to_invite = None;
+
+        // for General draw, if pool information can be found, the > 600 goes to Province, other goes to General
+        // otherwise, put in their respected category
+        let mut i = i_0;
+        while i < i_n {
+            let mut i_next = i_n;
+
+            // calculate the pool-based increase
+            while let Some(pool) = pools.last() {
+                if pool.date <= i {
+                    pool_to_invite = ScorePool::from(*pool).into();
+                    pools.pop();
+                } else {
+                    break;
+                }
+            }
+
+            let mut value = CategoryPool::zero();
+
+            // calculate the invite-based increase
+            while let Some(invite) = invites.last() {
+                assert!(invite.date >= i);
+                if invite.date != i {
+                    // potential next i: next invite data date
+                    i_next = std::cmp::min(i_next, invite.date);
+                    break;
+                }
+
+                if let Some(pool) = pool_to_invite {
+                    let invite_as_pool = pool.invite(invite);
+                    pool_to_invite = Some(pool - invite_as_pool); // remove already invited candidates from the pool to avoid duplicate counts.
+                    
+                    if invite.category.code != CategoryCode::General && invite.category.code != CategoryCode::Province {
+                        value[invite.category.code] = invite.size / pool.within_score(invite.score, 600.0).total();
+                        categories.insert(invite.category.code);
+                    }
+                }
+                invites.pop();
+            }
+
+            labels.push(i);
+            values.push(value);
+
+            i = i_next;
+        }
+
+        console_log!("{:?}, {:?}, {:?}", labels, values, categories);
 
         (labels, values, categories)
     }

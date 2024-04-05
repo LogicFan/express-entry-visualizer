@@ -23,3 +23,11 @@ The increase rate for each pool bucket if there is no IRCC draw. Here are the as
 2. each category follows the same score distribution as the general.
 3. diagram is smoothed using exponential moving average with 60 days windows.
 4. the projected rate uses the average increase rate of 180 most recent observed days.
+
+## Category
+
+### Invitation
+Data are directly from IRCC, for General Draw, candidate with score > 600 are classified with Province Nomination Program (PNP).
+
+### Candidates
+Computed using (number of invitation / number of people left in the pool within score range).

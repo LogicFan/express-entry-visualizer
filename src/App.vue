@@ -6,7 +6,6 @@ import Candidates from "./components/Candidates.vue";
 import Categories from "./components/Categories.vue";
 import Plan from "./components/Plan.vue";
 import Version from "./Version.vue";
-import Methodology from "./components/Methodology.vue";
 </script>
 
 <template>
@@ -30,11 +29,6 @@ import Methodology from "./components/Methodology.vue";
             <n-tab-pane name="plan" tab="IRCC Plan">
                 <Suspense>
                     <Plan />
-                </Suspense>
-            </n-tab-pane>
-            <n-tab-pane name="methodology" tab="Methodology">
-                <Suspense>
-                    <Methodology />
                 </Suspense>
             </n-tab-pane>
         </n-tabs>
